@@ -1,6 +1,8 @@
 var sha1 = require('sha1');
 var Promise = require('bluebird');
 var request = Promise.promisify(require('request'));
+// 处理xml
+var rawBody = require('raw-body');
 // get请求access_token的连接；
 var prefix = 'https://api.weixin.qq.com/cgi-bin/';
 var api ={
@@ -109,14 +111,21 @@ module.exports = function(opt){
         console.log(str);
         console.log(sha);
     
-        if(sha === signature){
-            this.body = echostr+'';
-            console.log('相等');
-    
-        }else{
-            this.body = 'wrong!';
-            console.log('wrong!');
+        if(this.method === 'GET' ){
+            if(sha === signature){
+                this.body = echostr+'';
+                console.log('相等');
+        
+            }else{
+                this.body = 'wrong!';
+                console.log('wrong!');
+            }
+        }else if(this.method === 'POST'){
+            if(sha === signature){
+                this.body = 'wrong!';
+                return false;
         }
+      
         
     }
 }
