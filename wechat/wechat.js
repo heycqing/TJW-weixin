@@ -3,6 +3,7 @@ var Promise = require('bluebird');
 var request = Promise.promisify(require('request'));
 // 处理xml
 var rawBody = require('raw-body');
+var util = require('../lib/util');
 // get请求access_token的连接；
 var prefix = 'https://api.weixin.qq.com/cgi-bin/';
 var api ={
@@ -98,6 +99,7 @@ module.exports = function(opt){
 
     return function *(next){
          
+         var that = this;
         console.log(this.query);
         
         var token = opt.token;
@@ -129,17 +131,43 @@ module.exports = function(opt){
             // 获取xml数据
             var data = yield rawBody(this.req,{
                 length:this.length,
-                limit:'1mb',
+                limit:'10mb',
                 encoding:this.charset
             });
-            
+            console.log('1111')
             console.log('xml是:'+data.toString());
 
             // 转化成json数据
             var content = yield util.parseXMLAsync(data);
 
-            console.log(content);
+            console.log('content-xml是：'+content);
 
+            // 这一步出现了问题？？？？？
+            var msg = util.formatMsg(content.xml);
+
+            console.log('msg是：'+msg);
+
+            // 判断消息回复,关注和取消关注事件；
+
+            if(msg.MsgType === 'event'){
+                if(msg.Event === 'subscribe'){
+                    var now = new Date().getTime();
+
+                    that.status = 200;
+                    that.type = 'application/xml';
+                    var reply = '<xml>'+
+                    '<ToUserName>< ![CDATA['+ msg.FromUserName+'] ]></ToUserName>'+
+                    '<FromUserName>< ![CDATA['+ msg.ToUserName+'] ]></FromUserName>'+
+                    '<CreateTime>'+ now +'</CreateTime>'+
+                    '<MsgType>< ![CDATA[text] ]></MsgType>'+
+                    '<Content>< ![CDATA[思卿，你好] ]></Content>'+'</xml>';
+
+                    console.log('reply是 '+ reply);
+                    that.body = reply;
+                    console.log('that.body是'+that.body)
+                    return ;
+                }
+            }
 
         }
 
