@@ -140,7 +140,7 @@ module.exports = function(opt){
             // 转化成json数据
             var content = yield util.parseXMLAsync(data);
 
-            console.log('content-xml是：'+content);
+            console.log('content-xml是：'+content.xml);
 
             // 这一步出现了问题？？？？？
             var msg = util.formatMsg(content.xml);
