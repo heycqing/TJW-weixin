@@ -135,7 +135,13 @@ module.exports = function(opt){
             
             console.log('xml是:'+data.toString());
 
-    }
+            // 转化成json数据
+            var content = yield util.parseXMLAsync(data);
+
+            console.log(content);
+
+
+        }
 
         
         
