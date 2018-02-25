@@ -121,11 +121,23 @@ module.exports = function(opt){
                 console.log('wrong!');
             }
         }else if(this.method === 'POST'){
-            if(sha === signature){
+            if(sha !== signature){
                 this.body = 'wrong!';
                 return false;
-        }
-      
+            }
+
+            // 获取xml数据
+            var data = yield rawBody(this.req,{
+                length:this.length,
+                limit:'1mb',
+                encoding:this.charset
+            });
+            
+            console.log('xml是:'+data.toString());
+
+    }
+
+        
         
     }
 }
