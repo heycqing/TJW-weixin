@@ -125,14 +125,14 @@ module.exports = function(opt){
         }else if(this.method === 'POST'){
 
             if(sha !== signature){
-                this.body = 'wrong!';
+                this.body = ' post is wrong!';
                 return false;
             }
 
             // 获取xml数据
             var data = yield rawBody(this.req,{
                 length:this.length,
-                limit:'10mb',
+                limit:'1mb',
                 encoding:this.charset
             });
             // console.log('1111')
@@ -147,14 +147,18 @@ module.exports = function(opt){
 
             // console.log('msg是：'+msg);
 
+
+
             // 判断消息回复,关注和取消关注事件；
 
             if(msg.MsgType == 'event'){
                 if(msg.Event === 'subscribe'){
+
+                    log(this);
                     var now = new Date().getTime();
 
-                    that.status = 200;
-                    that.type = 'application/xml';
+                    this.status = 200;
+                    this.type = 'text/plain; charset=utf-8';
                     var reply = '<xml>'+
                     '<ToUserName>< ![CDATA['+ msg.FromUserName+'] ]></ToUserName>'+
                     '<FromUserName>< ![CDATA['+ msg.ToUserName+'] ]></FromUserName>'+
@@ -163,8 +167,12 @@ module.exports = function(opt){
                     '<Content>< ![CDATA[思卿，你好] ]></Content>'+'</xml>';
 
                     console.log('reply是 '+ reply);
-                    that.body = reply;
-                    // return that.body;
+                    this.body = reply;
+                    console.log("that.res.body:"+this.body)
+
+                    log(this);
+
+                    return ;
                 }
             }
 
@@ -173,4 +181,8 @@ module.exports = function(opt){
         
         
     }
+}
+
+function log( ctx ) {
+    console.log( ctx.method, ctx.body,ctx.header.host + ctx.url )
 }
