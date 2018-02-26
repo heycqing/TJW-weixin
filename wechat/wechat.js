@@ -123,6 +123,7 @@ module.exports = function(opt){
                 console.log('wrong!');
             }
         }else if(this.method === 'POST'){
+
             if(sha !== signature){
                 this.body = 'wrong!';
                 return false;
@@ -134,22 +135,21 @@ module.exports = function(opt){
                 limit:'10mb',
                 encoding:this.charset
             });
-            console.log('1111')
-            console.log('xml是:'+data.toString());
+            // console.log('1111')
+            // console.log('xml是:'+data.toString());
 
             // 转化成json数据
             var content = yield util.parseXMLAsync(data);
 
-            console.log('content-xml是：'+content.xml);
+            // console.log('content-xml是：'+content.xml);
 
-            // 这一步出现了问题？？？？？
             var msg = util.formatMsg(content.xml);
 
-            console.log('msg是：'+msg);
+            // console.log('msg是：'+msg);
 
             // 判断消息回复,关注和取消关注事件；
 
-            if(msg.MsgType === 'event'){
+            if(msg.MsgType == 'event'){
                 if(msg.Event === 'subscribe'){
                     var now = new Date().getTime();
 
@@ -164,8 +164,7 @@ module.exports = function(opt){
 
                     console.log('reply是 '+ reply);
                     that.body = reply;
-                    console.log('that.body是'+that.body)
-                    return ;
+                    // return that.body;
                 }
             }
 
