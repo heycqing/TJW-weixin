@@ -152,13 +152,22 @@ module.exports = function(opt){
                 var content = msg.Content;
                 console.log('content是:'+content);
                 console.log('是文本');
+                if(content === '邂逅'){
                 var now = new Date().getTime();
                 this.status = 200;
                 this.type = 'application/xml';
-                this.body = '<xml><ToUserName>'+ msg.FromUserName+'</ToUserName><FromUserName>'+ msg.ToUserName+'</FromUserName><CreateTime>'+ now +'</CreateTime><MsgType>text</MsgType><Content>思卿，你好</Content>'+'</xml>';
+                this.body = '<xml><ToUserName>'+ msg.FromUserName+'</ToUserName><FromUserName>'+ msg.ToUserName+'</FromUserName><CreateTime>'+ now +'</CreateTime><MsgType>text</MsgType><Content>欢迎来到【邂逅实验室】，希望你能在这里邂逅到有趣的灵魂。'+'\n'+
+                '为了更好地迎接即将到来的这场邂逅，'+'\n'+
+                '请你认真地回答几个问题：'+'\n'+
+                '我来自北师，我希望邂逅北师的朋友，请回复A；'+'\n'+
+                '我来自北师，我希望邂逅北理的朋友，请回复B；'+'\n'+
+                '我来自北理，我希望邂逅北理的朋友，请回复C；'+'\n'+
+                '我来自北理，我希望邂逅北师的朋友，请回复D。'+'\n'+
+                '活动中遇到任何问题，请添加客服微信号:TJWstation</Content>'+'</xml>';
 
-                    console.log("that.body:"+this.body)
-                    return ;
+                console.log("that.body:"+this.body)
+                }
+                return ;
                     
             }
 
