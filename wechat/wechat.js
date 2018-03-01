@@ -147,34 +147,48 @@ module.exports = function(opt){
 
             // console.log('msg是：'+msg);
 
+            // 测试测试
+            if(msg.MsgType === 'text'){
+                var content = msg.Content;
+                console.log('content是:'+content);
+                console.log('是文本');
+                var now = new Date().getTime();
+                this.status = 200;
+                this.type = 'application/xml';
+                this.body = '<xml><ToUserName>'+ msg.FromUserName+'</ToUserName><FromUserName>'+ msg.ToUserName+'</FromUserName><CreateTime>'+ now +'</CreateTime><MsgType>text</MsgType><Content>思卿，你好</Content>'+'</xml>';
 
+                    console.log("that.body:"+this.body)
+                    return ;
+                    
+            }
 
             // 判断消息回复,关注和取消关注事件；
 
-            if(msg.MsgType == 'event'){
-                if(msg.Event === 'subscribe'){
+            // if(msg.MsgType == 'event'){
+            //     if(msg.Event === 'subscribe'){
 
-                    log(this);
-                    var now = new Date().getTime();
+            //         log(this);
+            //         var now = new Date().getTime();
 
-                    this.status = 200;
-                    this.type = 'text/plain; charset=utf-8';
-                    var reply = '<xml>'+
-                    '<ToUserName>< ![CDATA['+ msg.FromUserName+'] ]></ToUserName>'+
-                    '<FromUserName>< ![CDATA['+ msg.ToUserName+'] ]></FromUserName>'+
-                    '<CreateTime>'+ now +'</CreateTime>'+
-                    '<MsgType>< ![CDATA[text] ]></MsgType>'+
-                    '<Content>< ![CDATA[思卿，你好] ]></Content>'+'</xml>';
+            //         this.status = 200;
+            //         this.type = 'application/xml';
+            //         var reply = '<xml>'+
+            //         '<ToUserName>< ![CDATA['+ msg.FromUserName+'] ]></ToUserName>'+
+            //         '<FromUserName>< ![CDATA['+ msg.ToUserName+'] ]></FromUserName>'+
+            //         '<CreateTime>'+ now +'</CreateTime>'+
+            //         '<MsgType>< ![CDATA[text] ]></MsgType>'+
+            //         '<Content>< ![CDATA[思卿，你好] ]></Content>'+'</xml>';
 
-                    console.log('reply是 '+ reply);
-                    this.body = reply;
-                    console.log("that.res.body:"+this.body)
+            //         console.log('reply是 '+ reply);
+            //         this.body = reply;
+            //         console.log("that.res.body:"+this.body)
 
-                    log(this);
+            //         // this.body = 'lllllll';
+            //         log(this);
 
-                    return ;
-                }
-            }
+            //         return ;
+            //     }
+            // }
 
         }
 
@@ -186,3 +200,4 @@ module.exports = function(opt){
 function log( ctx ) {
     console.log( ctx.method, ctx.body,ctx.header.host + ctx.url )
 }
+
