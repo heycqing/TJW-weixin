@@ -24,5 +24,5 @@ var app = new Koa();
 
 app.use(wechat(config.wechat))
 
-app.listen(3333);
-console.log('正在监听3333端口！');
+app.listen(2223);
+console.log('正在监2223端口！');

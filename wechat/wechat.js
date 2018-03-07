@@ -3,6 +3,8 @@ var Promise = require('bluebird');
 var request = Promise.promisify(require('request'));
 var fs = require('fs');
 var path = require('path')
+// 连接数据库并将数据输入数据库
+var mysql  = require('mysql');  
 
 var wechat_file = path.join(__dirname,'../config/wechat_file.txt') 
 // var picUrl = path.join(__dirname,'../public/1.jpeg')
@@ -20,6 +22,7 @@ var api ={
 
 }
 
+
 var temp_xiehou ='';
 // 确认学校，并保存值；
 var temp_school = '';
@@ -27,6 +30,9 @@ var temp_school = '';
 var temp_sex = '';
 var temp_sure_school ='';
 var temp_sure_sex ='';
+
+// 新增mysql数据语句
+var addSqlParams = '';
 
 // 性别时间
 var total = '';
@@ -61,6 +67,8 @@ function Wechat(opt) {
         that.saveAccessToken(data);
     })
 }
+
+
 
 // 原型链添加函数
 // 检查合法性；
@@ -160,6 +168,18 @@ Wechat.prototype.uploadTempMaterial = function(type,filepath){
 			}).catch(function(err){
 				reject(err);
 			});
+		});
+	});
+}
+
+Wechat.prototype.getMaterial = function(mediaId,permanent){
+	var that = this;
+	var getUrl = permanent ? api.getPermMaterial : api.getTempMaterial;
+	return new Promise(function(resolve,reject){
+		that.fetchAccessToken().then(function(data){
+			var url = getUrl + 'access_token=' + data.access_token;
+			if(!permanent) url += '&media_id=' + mediaId;
+			resolve(url)
 		});
 	});
 }
@@ -379,8 +399,15 @@ module.exports = function(opt){
                         '接下来请你挑选一张你认为满意的本人照片发给我们，'+'\n'+
                         '我们将用这张照片作为媒介，让你们进行一轮初步交流，'+'\n'+
                         '所以一定要翻遍相册找张你非常满意的照片噢！';
+
+                    
+                       
+                        
+
                         this.body = xmlToreply(msg.FromUserName,msg.ToUserName,now,back) ;
                     }
+
+
                     // 重新选择
                     else if(temp_xiehou ==='邂逅'   && content==='no' && (temp_school === 'A' || temp_school === 'B' || temp_school === 'C' || temp_school === 'D') && (temp_sex ==='E' || temp_sex ==='F' || temp_sex ==='H' || temp_sex ==='I')){
                         var now = new Date().getTime();
@@ -398,6 +425,17 @@ module.exports = function(opt){
                     
                             
                     }
+                    else if(content === 'img'){
+                        var now = new Date().getTime()
+                        
+                        this.status = 200;
+                        this.type = 'application/xml';
+                        var back ="zB6p6qv_brhdNnJP7aPYkMWTNgeG68lpMkGcApAxYuSkIPrX6Oqp9LlibALcro9V";
+
+                        this.body = imgType(msg.FromUserName,msg.ToUserName,now,back) 
+
+
+                    }
                     else{
 
                         var now = new Date().getTime();
@@ -409,56 +447,67 @@ module.exports = function(opt){
                     }
 
                         
-                }else if(msg.MsgType === 'image' && temp_xiehou != '' ){
+                }else if(msg.MsgType === 'image' && temp_xiehou !='' && temp_school !='' && temp_sex != ''){
                     var now = new Date().getTime()
                     
                     this.status = 200;
                     this.type = 'application/xml';
+                    
+                        // 新增时间和数据库语句
+                        var connection = mysql.createConnection({     
+                            host: '39.108.58.83',
+                            user: 'root',
+                            password: '1234',
+                            port: '3306',
+                            database: 'TJW',
+                        }); 
+                         
+                    connection.connect();
+
+                    var picUrl = msg.PicUrl;
+                    var picId = msg.MediaId;
+
+                    var time = date2str(new Date(), "yyyy-MM-d h:m:s:ms");
+ 
+                    addSqlParams = [temp_school,temp_sex,time,picUrl,picId];
+                    var  addSql = 'INSERT INTO getTheTJW(school,sex,time,picUrl,picId) VALUES(?,?,?,?,?)';
+
+
+                    connection.query(addSql,addSqlParams,function (err, result) {
+
+                            if(err){
+                            console.log('[INSERT ERROR] - ',err.message);
+                            return;
+                            }        
+                    
+                        console.log('--------------------------INSERT----------------------------');
+                        //console.log('INSERT ID:',result.insertId);        
+                        console.log('INSERT ID:',result);        
+                        console.log('-----------------------------------------------------------------\n\n');  
+                    });
+
+                    connection.end();
                     var back ='你的照片已经成功提交到【邂逅实验室】啦，'+'正在为你寻找邂逅对象'+'这可能需要点时间，你可以晚点再来';
 
                     this.body = xmlToreply(msg.FromUserName,msg.ToUserName,now,back)   
-                    // var data = '';
-                    // fs.readFile(wechat_file, "utf-8", function(error, config) {
-                    //     if (error) {
-                    //         console.log(error);
-                    //         console.log("config文件读入出错");
-                    //     }
-                   
-                    // console.log(config.toString());
-                    // var temp= config.toString();
-                    //  data =JSON.parse(temp)
-                    // console.log('原来的函数 access_token：'+data.access_token);
-
-
-                    // var url =api.uploadTempMaterial+'access_token='+data.access_token+'&type=image';
-
-
-                    // var form = {
-                    //     media: fs.createReadStream(__dirname+'/public/1.jpeg')
-                    // };
-                
-                    
-                    // request({url:url,method:'POST',formData:form,json:true}).then(function(response){
-                    //     var _data = response.body;
-                    //     console.log('_data:'+_data)
-                    // }) 
-                    // this.body={
-				    //     mediaId:msg.media_id  
-                    // }    
-                    // });
-                
-                    
                         
 
                 }
                 else if(msg.MsgType === 'voice' ){
-                    var now = new Deta().getTime()
+                    var now = new Date().getTime()
                     this.status = 200;
                     this.type = 'application/xml';
                     var back ='你的语音已经成功提交到【邂逅实验室】啦!'
 
                     this.body = xmlToreply(msg.FromUserName,msg.ToUserName,now,back);
 
+                }else{
+                    var now = new Date().getTime();
+                    this.status = 200;
+                    this.type = 'application/xml';
+                    var back = '听不懂你在说的是什么？';
+                    this.body = xmlToreply(msg.FromUserName,msg.ToUserName,now,back)
+                    console.log("that.body:"+this.body)
                 }
             
                 return ;
@@ -471,9 +520,7 @@ module.exports = function(opt){
 }
 
 
-function A(temp_xiehou,temp_school,temp_sex){
 
-}
 
 // 读取txt内容
 function toJson(wechat_file){
@@ -502,7 +549,34 @@ function xmlToreply(a,b,c,d){
     return reply;
 }
 
+function imgType(a,b,c,d){
+    var reply = '<xml><ToUserName>'+a+'</ToUserName><FromUserName>'+b
+    +'</FromUserName><CreateTime>'+c+'</CreateTime><MsgType>image</MsgType><Image><MediaId>'+d
+    +'</MediaId></Image></xml>'
+    return reply;
+}
+
 function log( ctx ) {
     console.log( ctx.method, ctx.body,ctx.header.host + ctx.url )
 }
+
+
+ 
+
+function date2str(x, y) {
+    var z = {
+        y: x.getFullYear(),
+        M: x.getMonth() + 1,
+        d: x.getDate(),
+        h: x.getHours(),
+        m: x.getMinutes(),
+        s: x.getSeconds(),
+        ms: x.getMilliseconds()
+    };
+    return y.replace(/(y+|M+|d+|h+|m+|s+|ms+)/g, function(v) {
+        return ((v.length > 1 ? "0" : "") + eval('z.' + v.slice(-1))).slice(-(v.length > 2 ? v.length : 2))
+    });
+}
+
+
 
