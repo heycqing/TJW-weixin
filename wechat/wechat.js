@@ -35,6 +35,9 @@ var temp_image = '';
 
 // 判断
 var temp_picUrl = '';
+var getID_pic = '';
+
+
 
 // 性别时间
 var total = '';
@@ -432,7 +435,7 @@ module.exports = function(opt){
                         
                         this.status = 200;
                         this.type = 'application/xml';
-                        var back ="zB6p6qv_brhdNnJP7aPYkMWTNgeG68lpMkGcApAxYuSkIPrX6Oqp9LlibALcro9V";
+                        var back ="FoSxNf0PO9Bz9FQAKAiuQ9CzHvV7nZRZlIPOm7UGRIOB8tgFteKE9H65DH3DU9yl";
 
                         this.body = imgType(msg.FromUserName,msg.ToUserName,now,back) 
 
@@ -451,11 +454,16 @@ module.exports = function(opt){
                         
                 }else if(msg.MsgType === 'image' && temp_xiehou !='' && temp_school !='' && temp_sex != ''){
                     var now = new Date().getTime()
-
-                    temp_image = msg.MsgType;
                     
+                    temp_image = msg.MsgType;
                     this.status = 200;
                     this.type = 'application/xml';
+                    var that =this;
+                  
+                    
+                    
+                    
+                 
                     
                     // 新增时间和数据库语句
                     var connection = mysql.createConnection({     
@@ -469,7 +477,7 @@ module.exports = function(opt){
                     connection.connect();
 
                     var picUrl = msg.PicUrl;
-                        temp_picUrl = msg.PicUrl;
+                    var temp_picUrl = msg.PicUrl;
 
                     var picId = msg.MediaId;
 
@@ -491,11 +499,12 @@ module.exports = function(opt){
                         console.log('INSERT ID:',result);        
                         console.log('-----------------------------------------------------------------\n\n');  
                     });
+                    // connection.end();
+                    
 
 
-                    var getID = '';
-
-                    var back ='你的照片已经成功提交到【邂逅实验室】啦，'+'正在为你寻找邂逅对象'+'这可能需要点时间，你可以晚点再来';
+                    // new Promise() 
+                    // var back ='你的照片已经成功提交到【邂逅实验室】啦，'+'正在为你寻找邂逅对象'+'这可能需要点时间，你可以晚点再来';
 
                     if(temp_school === 'A' && temp_sex === 'E'){
                         var  sql = "SELECT picId FROM getTheTJW where school= 'A' and sex = 'E'  ";
@@ -525,25 +534,65 @@ module.exports = function(opt){
                     }
 
                     //查
-                    connection.query(sql,function (err, result) {
-                            if(err){
-                            console.log('[SELECT ERROR] - ',err.message);
-                            return;
+                    var select=function(sql,callback){
+                        connection.query(sql,function(err,data){
+                            if(err){console.log(err)}
+
+
+                            var a = Math.floor(Math.random()*data.length);
+                            console.log(a);
+                            
+                            if(data[a].picId === temp_picUrl){
+                                a =  a - 1;
+                                console.log(data[a].picId);
+                                callback(data[0].picId,that)
+                            // return result[a].picId
+                        
+                            }else{
+                                console.log(data[a].picId);
+                                callback(data[0].picId,that)
+                                
+                                // return result[a].picId
+                                
                             }
+
+
+                        })
+                    };
                     
-                        console.log('--------------------------SELECT----------------------------');
-                        getID = result;
-                        console.log(getID[0].picId)
-                        console.log('------------------------------------------------------------\n\n');  
-                    });
+                    function processdata(data,that){
+                        console.log("data是:"+data);
+                        that.body = imgType(msg.FromUserName,msg.ToUserName,now,data);
+
+                        
+                    }
+
+                    select(sql,processdata);
+                   
+                   
 
 
-                    connection.end();
+                        
+                  
 
-                    this.body = xmlToreply(msg.FromUserName,msg.ToUserName,now,back);
+
                     
 
-                    // this.body = imgType(msg.FromUserName,msg.ToUserName,now,getID); 
+
+
+                
+                       
+                    
+                    
+                    
+           
+
+
+                  
+
+                    
+                    
+
                         
 
                 }
@@ -638,6 +687,7 @@ function imgType(a,b,c,d){
     var reply = '<xml><ToUserName>'+a+'</ToUserName><FromUserName>'+b
     +'</FromUserName><CreateTime>'+c+'</CreateTime><MsgType>image</MsgType><Image><MediaId>'+d
     +'</MediaId></Image></xml>'
+    console.log(reply);
     return reply;
 }
 
@@ -645,6 +695,49 @@ function imgType(a,b,c,d){
 function voicetype(a,b,c,d){
    var reply = '<xml><ToUserName>'+a+'</ToUserName><FromUserName>'+b+'</FromUserName><CreateTime>'+c+'</CreateTime><MsgType>voice</MsgType><Voice><MediaId>'+d+'</MediaId></Voice></xml>';
    return reply;
+}
+
+// 连接数据库
+function chaxun_(sql,temp_picUrl){
+    var connection = mysql.createConnection({     
+        host: '39.108.58.83',
+        user: 'root',
+        password: '1234',
+        port: '3306',
+        database: 'TJW',
+    }); 
+     
+    connection.connect();
+    connection.query(sql,function (err, result) {
+        if(err){
+        console.log('[SELECT ERROR] - ',err.message);
+        return;
+        }
+
+    console.log('--------------------------SELECT----------------------------');
+
+    
+
+    var a = Math.floor(Math.random()*result.length);
+    console.log(a);
+    
+    if(result[a].picId === temp_picUrl){
+        a =  a - 1;
+        console.log(result[a].picId);
+        return result[a].picId
+
+    }else{
+        console.log(result[a].picId);
+        return result[a].picId
+        
+    }
+        // console.log(result)
+        console.log('------------------------------------------------------------\n\n'); 
+
+    });
+    connection.end();
+    
+
 }
 
 

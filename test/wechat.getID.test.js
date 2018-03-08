@@ -1,33 +1,31 @@
 var mysql = require('mysql')
-var connection = mysql.createConnection({     
-    host: '39.108.58.83',
-    user: 'root',
-    password: '1234',
-    port: '3306',
-    database: 'TJW',
-}); 
- 
-connection.connect();
-
 var  sql = "SELECT picId FROM getTheTJW where school= 'A' and sex = 'E'  ";
 
-
-connection.query(sql,function (err, result) {
-    if(err){
-    console.log('[SELECT ERROR] - ',err.message);
-    return;
+    var connection = mysql.createConnection({     
+        host: '39.108.58.83',
+        user: 'root',
+        password: '1234',
+        port: '3306',
+        database: 'TJW',
+    }); 
+    connection.connect();
+    var select=function(sql,callback){
+        connection.query(sql,function(err,data){
+            if(err){console.log(err)}
+            callback(data[0].picId)
+        })
+    };
+    
+    function processdata(data){
+        console.log("data是:"+data);
+        //  temp = data;
+        // console.log("temp是:"+temp);
+        
     }
+    select(sql,processdata)
 
-console.log('--------------------------SELECT----------------------------');
-getID = result;
-console.log(Math.floor(Math.random()*getID.length))
-var a = Math.floor(Math.random()*getID.length);
-console.log(getID.length)
-// console.log(getID)
-console.log(getID[a].picId)
-console.log(result[0].picId)
-console.log('------------------------------------------------------------\n\n');  
-});
+ 
+// console.log("结果是:"+);
+// console.log("temp是:"+temp);
 
 
-connection.end();
