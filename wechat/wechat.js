@@ -435,9 +435,70 @@ module.exports = function(opt){
                         
                         this.status = 200;
                         this.type = 'application/xml';
-                        var back ="FoSxNf0PO9Bz9FQAKAiuQ9CzHvV7nZRZlIPOm7UGRIOB8tgFteKE9H65DH3DU9yl";
-
+                        var back ="kAPh7QLnzaZEieTwuvwjzwkZJgA6CSe8IT5d5iEPybilZhdF9-7ZvFJZF31ChsXi";
+                        console.log("this.type是:"+this.type)
                         this.body = imgType(msg.FromUserName,msg.ToUserName,now,back) 
+
+
+                    }
+                    // TEST
+                    else if(content === 'gg'){
+                        var now = new Date().getTime();
+                        console.log("now是:"+now)
+                        this.status = 200;
+                        this.type = 'application/xml';
+
+                     
+                        var that = this;
+
+                        select(sql,processdata);
+                        
+                        // 测试测试
+
+                        function select(sql,callback){
+
+                            var  sql = "SELECT picId FROM getTheTJW where school= 'A' and sex = 'E' ";
+                            
+                            var connection = mysql.createConnection({     
+                                host: '39.108.58.83',
+                                user: 'root',
+                                password: '1234',
+                                port: '3306',
+                                database: 'TJW',
+                            }); 
+
+                        
+                            connection.connect();
+
+                            connection.query(sql,function(err,data){
+                                if(err){console.log(err)}
+                                // 作为参数传递出去
+                                callback(data[0].picId)
+                            })
+                            // return a;
+                        };
+
+
+                        function processdata(data){
+
+                            console.log("\n\n\nthis是"+that);
+                                             
+                          
+                         
+                            console.log("\n\n\ndata是:"+data);
+                            console.log("msg.FromUserName是："+msg.FromUserName)
+                            console.log("msg.ToUserName是："+msg.ToUserName)
+                            console.log("this.type是:"+this.type)
+                            console.log("now是："+now+"\n\n\n")
+
+                            that.body = imgType(msg.FromUserName,msg.ToUserName,now,data);   
+
+                            return  console.log("this.body是："+that.body);
+
+                        }
+
+                        
+
 
 
                     }
@@ -447,8 +508,10 @@ module.exports = function(opt){
                         this.status = 200;
                         this.type = 'application/xml';
                         var back = '听不懂你在说的是什么？';
-                        this.body = xmlToreply(msg.FromUserName,msg.ToUserName,now,back)
-                        console.log("that.body:"+this.body)
+                        this.body = xmlToreply(msg.FromUserName,msg.ToUserName,now,back);
+                        console.log("that.body:"+this.body);
+
+                        console.log("this是："+this);
                     }
 
                         
@@ -459,13 +522,15 @@ module.exports = function(opt){
                     this.status = 200;
                     this.type = 'application/xml';
                     var that =this;
-                  
+                    // var back ="kAPh7QLnzaZEieTwuvwjzwkZJgA6CSe8IT5d5iEPybilZhdF9-7ZvFJZF31ChsXi";
+                    //     console.log("this.type是:"+this.type)
+                    // this.body = imgType(msg.FromUserName,msg.ToUserName,now,back);
                     
                     
                     
                  
                     
-                    // 新增时间和数据库语句
+                    // // 新增时间和数据库语句
                     var connection = mysql.createConnection({     
                             host: '39.108.58.83',
                             user: 'root',
@@ -503,7 +568,7 @@ module.exports = function(opt){
                     
 
 
-                    // new Promise() 
+           
                     // var back ='你的照片已经成功提交到【邂逅实验室】啦，'+'正在为你寻找邂逅对象'+'这可能需要点时间，你可以晚点再来';
 
                     if(temp_school === 'A' && temp_sex === 'E'){
@@ -544,32 +609,29 @@ module.exports = function(opt){
                             
                             if(data[a].picId === temp_picUrl){
                                 a =  a - 1;
+                                console.log("\n\n\ntemp_picUrl是:"+temp_picUrl+"\n\n\n")
                                 console.log(data[a].picId);
-                                callback(data[0].picId,that)
+                                callback(data[a].picId,that)
                             // return result[a].picId
                         
                             }else{
                                 console.log(data[a].picId);
-                                callback(data[0].picId,that)
-                                
-                                // return result[a].picId
-                                
+                                callback(data[a].picId,that)
+                                // return result[a].picId                               
                             }
 
 
                         })
                     };
                     
-                    function processdata(data,that){
+                    function processdata(data){
                         console.log("data是:"+data);
                         that.body = imgType(msg.FromUserName,msg.ToUserName,now,data);
-
-                        
                     }
 
                     select(sql,processdata);
                    
-                   
+                   return;
 
 
                         
@@ -762,6 +824,7 @@ function date2str(x, y) {
         return ((v.length > 1 ? "0" : "") + eval('z.' + v.slice(-1))).slice(-(v.length > 2 ? v.length : 2))
     });
 }
+
 
 
 
