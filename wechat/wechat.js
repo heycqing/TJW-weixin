@@ -22,25 +22,13 @@ var api ={
 
 }
 
-
+// 邂逅;
 var temp_xiehou ='';
-// 确认学校，并保存值；
-var temp_school = '';
-// 确认性别，并保存值；
+// 性别;
 var temp_sex = '';
-var temp_sure_school ='';
-var temp_sure_sex ='';
-// 判断是否输入图片;
+// 图片
 var temp_image = '';
 
-// 判断
-var temp_picUrl = '';
-var getID_pic = '';
-
-
-
-// 性别时间
-var total = '';
 
 
 // 读取票据
@@ -194,8 +182,8 @@ Wechat.prototype.getMaterial = function(mediaId,permanent){
 module.exports = function(opt){
   
 
-         // 实例化Wechat
-         var wechat  = new Wechat(opt);
+    // 实例化Wechat
+    var wechat  = new Wechat(opt);
 
     return function *(next){
          
@@ -257,178 +245,105 @@ module.exports = function(opt){
                         this.status = 200;
                         this.type = 'application/xml';
                         temp_xiehou = content;
-                        var back ='欢迎来到【邂逅实验室】，希望你能在这里邂逅到有趣的灵魂。'+'\n'+
-                        '为了更好地迎接即将到来的这场邂逅，'+'\n'+
-                        '请你认真地回答几个问题：'+'\n'+
-                        '我来自北师，我希望邂逅北师的朋友，请回复A；'+'\n'+
-                        '我来自北师，我希望邂逅北理的朋友，请回复B；'+'\n'+
-                        '我来自北理，我希望邂逅北理的朋友，请回复C；'+'\n'+
-                        '我来自北理，我希望邂逅北师的朋友，请回复D。'+'\n'+
-                        '活动中遇到任何问题，请添加客服微信号:TJWstation';
+                       
+                        var back = '欢迎来到【邂逅实验室】，希望你能在这里邂逅到有趣的灵魂。'+'\n'+
+                                    '首先请你做一个关乎终身大事的选择：'+'\n'+
+                                    '我是男生，想邂逅男生，请回复A；'+'\n'+
+                                    '我是男生，想邂逅女生，请回复B；'+'\n'+
+                                    '我是女生，想邂逅男生，请回复C；'+'\n'+
+                                    '我是女生，想邂逅女生，请回复D。';
+                        
 
                         this.body = xmlToreply(msg.FromUserName,msg.ToUserName,now,back)                        
                         
                         
-                    }else if(temp_xiehou === '邂逅' && content === 'A'){
-                        var now = new Date().getTime();
-                        total = new Date().getTime();
-                        
-                        this.status = 200;
-                        this.type = 'application/xml';
-                        // temp_xiehou = content;
-                        temp_school = content;
-                        
-                        var back ='你来自北师，你想邂逅北师的朋友，确认请回复1，重新选择请回复2，5分钟不回复就当做你确认了哦。';
-                        this.body = xmlToreply(msg.FromUserName,msg.ToUserName,now,back)                        
-                        
-                 
-                        
-                    }else if(temp_xiehou === '邂逅' && content === 'B'){
-                        var now = new Date().getTime();
-                        total = new Date().getTime();
-                        
-                        this.status = 200;
-                        this.type = 'application/xml';
-                        temp_school = content;
+                    }else if(temp_xiehou === '邂逅' && (content === 'A' || content === 'a')){
+                        temp_sex = content.tolocaleUpperCase();
 
-                        var back ='你来自北师，你想邂逅北理的朋友，确认请回复1，重新选择请回复2，5分钟不回复就当做你确认了哦。';
+
+
+                        var now = new Date().getTime();
+                        this.status = 200;
+                        this.type = 'application/xml';
+                        var back ='你是男生，想邂逅男生，确认请回复yes，重新选择请回复no，5分钟不回复就当做你确认了哦!';                        
+                        this.body = xmlToreply(msg.FromUserName,msg.ToUserName,now,back)                       
+
+                    }else if(temp_xiehou === '邂逅' && (content === 'B' || content === 'b')){
+                        temp_sex = content.tolocaleUpperCase();
+                        
+                        var now = new Date().getTime();
+                        this.status = 200;
+                        this.type = 'application/xml';
+                        var back ='你是男生，想邂逅女生，确认请回复yes，重新选择请回复no，5分钟不回复就当做你确认了哦!';
                         this.body = xmlToreply(msg.FromUserName,msg.ToUserName,now,back)                        
                         
                         
-                    }else if(temp_xiehou === '邂逅' && content === 'C'){
-                        var now = new Date().getTime();
-                        total = new Date().getTime();
+                    }else if(temp_xiehou === '邂逅' && (content === 'C' || content === 'c')){
+                        temp_sex = content.tolocaleUpperCase();
                         
+                        var now = new Date().getTime();
                         this.status = 200;
                         this.type = 'application/xml';
-                        temp_school = content;
-
-                        var back ='你来自北理，你想邂逅北理的朋友，确认请回复1，重新选择请回复2，5分钟不回复就当做你确认了哦。';
+                        var back ='你是女生，想邂逅男生，确认请回复yes，重新选择请回复no，5分钟不回复就当做你确认了哦!';                        
                         this.body = xmlToreply(msg.FromUserName,msg.ToUserName,now,back)                        
                         
                         
-                    }else if(temp_xiehou === '邂逅' && content === 'D'){
-                        var now = new Date().getTime();
-                        total = new Date().getTime();
+                    }else if(temp_xiehou === '邂逅' && (content === 'D' || content === 'd')){
+                        temp_sex = content.tolocaleUpperCase();
                         
+                        var now = new Date().getTime();
                         this.status = 200;
                         this.type = 'application/xml';
-                        temp_school = content;
-
-                        var back ='你来自北理，你想邂逅北师的朋友，确认请回复1，重新选择请回复2，5分钟不回复就当做你确认了哦。';
+                        var back ='你是女生，想邂逅女生，确认请回复yes，重新选择请回复no，5分钟不回复就当做你确认了哦!';                        
                         this.body = xmlToreply(msg.FromUserName,msg.ToUserName,now,back)                        
                         
                         
                     }
-                    // 重新选择；
-                    else if(temp_xiehou === '邂逅' && content === '2'){
-                        var now = new Date().getTime();
-                        total = '';
-                        
+                    // 确认
+                    else if(temp_xiehou !='' && (temp_sex === 'A' || temp_sex === 'B' || temp_sex === 'C' || temp_sex === 'D') ){
+                        var now = new Date().getTime();                        
                         this.status = 200;
                         this.type = 'application/xml';
-                        temp_xiehou = content;
-                        var back ='请重新选择'+'\n'+
-                        '我来自北师，我希望邂逅北师的朋友，请回复A；'+'\n'+
-                        '我来自北师，我希望邂逅北理的朋友，请回复B；'+'\n'+
-                        '我来自北理，我希望邂逅北理的朋友，请回复C；'+'\n'+
-                        '我来自北理，我希望邂逅北师的朋友，请回复D。'+'\n'+
-                        '活动中遇到任何问题，请添加客服微信号:TJWstation';
+                        var back = '恭喜你成功加入今天的【邂逅实验室】！'+'\n'+
+                        '我将在实验室里努力挑选一位有缘人与你邂逅，'+'\n'+
+                        '接下来请你挑选一张你认为满意的本人照片发给我们，'+'\n'+
+                        '我们将用这张照片作为媒介，让你们进行一轮初步交流，'+'\n'+
+                        '所以一定要翻遍相册找张你非常满意的照片噢！'+'\n'+
+                        '温馨提示：只有一次上传照片的机会，一旦传错将无法修改。'
+                        
+
+                        this.body = xmlToreply(msg.FromUserName,msg.ToUserName,now,back)   
+                    }
+                    // 重新选择；
+                    else if(temp_xiehou === '邂逅' && temp_sex != ''&&content === '2'){
+
+                        var now = new Date().getTime();                        
+                        this.status = 200;
+                        this.type = 'application/xml';
+                        var back = '请重新选择：'+'\n'+
+                        '我是男生，想邂逅男生，请回复A；'+'\n'+
+                        '我是男生，想邂逅女生，请回复B；'+'\n'+
+                        '我是女生，想邂逅男生，请回复C；'+'\n'+
+                        '我是女生，想邂逅女生，请回复D。';
 
                         this.body = xmlToreply(msg.FromUserName,msg.ToUserName,now,back)         
 
                     }
-                    // 确认环节；
-                    else if((temp_xiehou ==='邂逅'  && content === '1') && (temp_school === 'A' || temp_school === 'B' || temp_school === 'C' || temp_school === 'D') ){
-                        var now = new Date().getTime();
+                    else if(content === 'm'){
                         this.status = 200;
                         this.type = 'application/xml';
-                        temp_sure = content;
+                        var back_1 = '12222222';
+                        var back_2 ="kAPh7QLnzaZEieTwuvwjzwkZJgA6CSe8IT5d5iEPybilZhdF9-7ZvFJZF31ChsXi";
+                        var back_3 = 'hahahahahaha'
                         
-                        var back = '好的，你的要求我收到了，接下来请你再做一个选择：'+'\n'+
-                                    '我是男生，想邂逅男生，请回复E；'+'\n'+
-                                    '我是男生，想邂逅女生，请回复F；'+'\n'+
-                                    '我是女生，想邂逅男生，请回复H；'+'\n'+
-                                    '我是女生，想邂逅女生，请回复I。';
+                        var a =[back_1,back_2,back_3];
+                        console.log(a);
+                        for(var i = 0 ;i<3;i++){
+                            back = a[i];
+                            console.log(back)
+                            this.body = imgType(msg.FromUserName,msg.ToUserName,now,back) 
+                        }
 
-                        this.body = xmlToreply(msg.FromUserName,msg.ToUserName,now,back)                        
-                    
-                    }else if(temp_xiehou ==='邂逅'  && temp_sure === '1' && (temp_school === 'A' || temp_school === 'B' || temp_school === 'C' || temp_school === 'D') && content ==='E'){
-                        var now = new Date().getTime();
-                        this.status = 200;
-                        this.type = 'application/xml';
-                        temp_sex = content;
-                        temp_sure = '';
-                        console.log('temp_sex是：'+temp_sex);
-                        var back ='你是男生，想邂逅男生，确认请回复yes，重新选择请回复no，5分钟不回复就当做你确认了哦!';
-                        this.body = xmlToreply(msg.FromUserName,msg.ToUserName,now,back)                        
-                        
-                    }else if(temp_xiehou ==='邂逅'  && temp_sure === '1' && (temp_school === 'A' || temp_school === 'B' || temp_school === 'C' || temp_school === 'D') && content ==='F'){
-                        var now = new Date().getTime();
-                        this.status = 200;
-                        this.type = 'application/xml';
-                        temp_sex = content;
-                        temp_sure = '';
-                        
-                        var back ='你是男生，想邂逅女生，确认请回复yes，重新选择请回复no，5分钟不回复就当做你确认了哦!';
-                        this.body = xmlToreply(msg.FromUserName,msg.ToUserName,now,back) ;
-
-                    }else if(temp_xiehou ==='邂逅'  && temp_sure === '1' && (temp_school === 'A' || temp_school === 'B' || temp_school === 'C' || temp_school === 'D') && content ==='H'){
-                        var now = new Date().getTime();
-                        this.status = 200;
-                        this.type = 'application/xml';
-                        temp_sex = content;
-                        temp_sure = '';
-                        
-                        var back ='你是女生，想邂逅男生，确认请回复yes，重新选择请回复no，5分钟不回复就当做你确认了哦!';
-                        this.body = xmlToreply(msg.FromUserName,msg.ToUserName,now,back) ;
-                    }else if(temp_xiehou ==='邂逅'  && temp_sure === '1' && (temp_school === 'A' || temp_school === 'B' || temp_school === 'C' || temp_school === 'D') && content ==='I'){
-                        var now = new Date().getTime();
-                        this.status = 200;
-                        this.type = 'application/xml';
-                        temp_sex = content;
-                        temp_sure = '';
-                        
-                        var back ='你是女生，想邂逅女生，确认请回复yes，重新选择请回复no，5分钟不回复就当做你确认了哦!';
-                        this.body = xmlToreply(msg.FromUserName,msg.ToUserName,now,back) ;
-                    }else if( temp_xiehou ==='邂逅'   && content==='yes' && (temp_school === 'A' || temp_school === 'B' || temp_school === 'C' || temp_school === 'D') && (temp_sex ==='E' || temp_sex ==='F' || temp_sex ==='H' || temp_sex ==='I')){
-
-                        var now = new Date().getTime();
-                        this.status = 200;
-                        this.type = 'application/xml';
-
-                        temp_sure_sex = content;
-
-                        var back ='恭喜你成功加入今天的【邂逅实验室】！'+'\n'+
-                        '我将在实验室里努力挑选一位有缘人与你邂逅，'+'\n'+
-                        '接下来请你挑选一张你认为满意的本人照片发给我们，'+'\n'+
-                        '我们将用这张照片作为媒介，让你们进行一轮初步交流，'+'\n'+
-                        '所以一定要翻遍相册找张你非常满意的照片噢！';
-
-                    
-                       
-                        
-
-                        this.body = xmlToreply(msg.FromUserName,msg.ToUserName,now,back) ;
-                    }
-
-
-                    // 重新选择
-                    else if(temp_xiehou ==='邂逅'   && content==='no' && (temp_school === 'A' || temp_school === 'B' || temp_school === 'C' || temp_school === 'D') && (temp_sex ==='E' || temp_sex ==='F' || temp_sex ==='H' || temp_sex ==='I')){
-                        var now = new Date().getTime();
-                        this.status = 200;
-                        this.type = 'application/xml';
-                        temp_sure = content;
-                        
-                        var back = '请重新选择：'+'\n'+
-                                    '我是男生，想邂逅男生，请回复E；'+'\n'+
-                                    '我是男生，想邂逅女生，请回复F；'+'\n'+
-                                    '我是女生，想邂逅男生，请回复H；'+'\n'+
-                                    '我是女生，想邂逅女生，请回复I。';
-
-                        this.body = xmlToreply(msg.FromUserName,msg.ToUserName,now,back)                        
-                    
-                            
                     }
                     else if(content === 'img'){
                         var now = new Date().getTime()
@@ -441,67 +356,7 @@ module.exports = function(opt){
 
 
                     }
-                    // TEST
-                    else if(content === 'gg'){
-                        var now = new Date().getTime();
-                        console.log("now是:"+now)
-                        this.status = 200;
-                        this.type = 'application/xml';
-
-                     
-                        var that = this;
-
-                        select(sql,processdata);
-                        
-                        // 测试测试
-
-                        function select(sql,callback){
-
-                            var  sql = "SELECT picId FROM getTheTJW where school= 'A' and sex = 'E' ";
-                            
-                            var connection = mysql.createConnection({     
-                                host: '39.108.58.83',
-                                user: 'root',
-                                password: '1234',
-                                port: '3306',
-                                database: 'TJW',
-                            }); 
-
-                        
-                            connection.connect();
-
-                            connection.query(sql,function(err,data){
-                                if(err){console.log(err)}
-                                // 作为参数传递出去
-                                callback(data[0].picId)
-                            })
-                            // return a;
-                        };
-
-
-                        function processdata(data){
-
-                            console.log("\n\n\nthis是"+that);
-                                             
-                          
-                         
-                            console.log("\n\n\ndata是:"+data);
-                            console.log("msg.FromUserName是："+msg.FromUserName)
-                            console.log("msg.ToUserName是："+msg.ToUserName)
-                            console.log("this.type是:"+this.type)
-                            console.log("now是："+now+"\n\n\n")
-
-                            that.body = imgType(msg.FromUserName,msg.ToUserName,now,data);   
-
-                            return  console.log("this.body是："+that.body);
-
-                        }
-
-                        
-
-
-
-                    }
+                
                     else{
 
                         var now = new Date().getTime();
@@ -511,154 +366,20 @@ module.exports = function(opt){
                         this.body = xmlToreply(msg.FromUserName,msg.ToUserName,now,back);
                         console.log("that.body:"+this.body);
 
-                        console.log("this是："+this);
                     }
 
                         
-                }else if(msg.MsgType === 'image' && temp_xiehou !='' && temp_school !='' && temp_sex != ''){
+                }else if(msg.MsgType === 'image' && temp_xiehou !=''  && temp_sex != ''){
                     var now = new Date().getTime()
                     
                     temp_image = msg.MsgType;
                     this.status = 200;
                     this.type = 'application/xml';
                     var that =this;
-                    // var back ="kAPh7QLnzaZEieTwuvwjzwkZJgA6CSe8IT5d5iEPybilZhdF9-7ZvFJZF31ChsXi";
-                    //     console.log("this.type是:"+this.type)
-                    // this.body = imgType(msg.FromUserName,msg.ToUserName,now,back);
-                    
-                    
-                    
-                 
-                    
-                    // // 新增时间和数据库语句
-                    var connection = mysql.createConnection({     
-                            host: '39.108.58.83',
-                            user: 'root',
-                            password: '1234',
-                            port: '3306',
-                            database: 'TJW',
-                        }); 
-                         
-                    connection.connect();
-
-                    var picUrl = msg.PicUrl;
-                    var temp_picUrl = msg.PicUrl;
-
-                    var picId = msg.MediaId;
-
-                    var time = date2str(new Date(), "yyyy-MM-d h:m:s:ms");
- 
-                    addSqlParams = [temp_school,temp_sex,time,picUrl,picId,''];
-                    var  addSql = 'INSERT INTO getTheTJW(school,sex,time,picUrl,picId,voiceId) VALUES(?,?,?,?,?,?)';
-
-                    // 打印信息
-                    connection.query(addSql,addSqlParams,function (err, result) {
-
-                            if(err){
-                            console.log('[INSERT ERROR] - ',err.message);
-                            return;
-                            }        
-                    
-                        console.log('--------------------------INSERT----------------------------');
-                        //console.log('INSERT ID:',result.insertId);        
-                        console.log('INSERT ID:',result);        
-                        console.log('-----------------------------------------------------------------\n\n');  
-                    });
-                    // connection.end();
-                    
-
-
-           
-                    // var back ='你的照片已经成功提交到【邂逅实验室】啦，'+'正在为你寻找邂逅对象'+'这可能需要点时间，你可以晚点再来';
-
-                    if(temp_school === 'A' && temp_sex === 'E'){
-                        var  sql = "SELECT picId FROM getTheTJW where school= 'A' and sex = 'E'  ";
-                    }
-                    else if(temp_school === 'A' && temp_sex === 'I'){
-                        var  sql = "SELECT picId FROM getTheTJW where school= 'A' and sex = 'I'  ";
-                    }else if(temp_school === 'C' && temp_sex === 'E'){
-                        var  sql = "SELECT picId FROM getTheTJW where school= 'C' and sex = 'E'  ";
-                    }else if(temp_school === 'C' && temp_sex === 'I'){
-                        var  sql = "SELECT picId FROM getTheTJW where school= 'C' and sex = 'I'  ";
-                    }else if(temp_school === 'B' && temp_sex === 'E'){
-                        var  sql = "SELECT picId FROM getTheTJW where school= 'B' and sex = 'E'  ";
-                    }else if(temp_school === 'B' && temp_sex === 'I'){
-                        var  sql = "SELECT picId FROM getTheTJW where school= 'B' and sex = 'I'  ";
-                    }else if(temp_school === 'D' && temp_sex === 'E'){
-                        var  sql = "SELECT picId FROM getTheTJW where school= 'D' and sex = 'E'  ";
-                    }else if(temp_school === 'D' && temp_sex === 'I'){
-                        var  sql = "SELECT picId FROM getTheTJW where school= 'D' and sex = 'I'  ";
-                    }else if(temp_school === 'A' && (temp_sex === 'F' || temp_sex === 'H')){
-                        var  sql = "SELECT picId FROM getTheTJW where school= 'D' and sex = 'F'  or sex = 'H' ";
-                    }else if(temp_school === 'B' && (temp_sex === 'F' || temp_sex === 'H')){
-                        var  sql = "SELECT picId FROM getTheTJW where school= 'D' and sex = 'F'  or sex = 'H' ";
-                    }else if(temp_school === 'C' && (temp_sex === 'F' || temp_sex === 'H')){
-                        var  sql = "SELECT picId FROM getTheTJW where school= 'D' and sex = 'F'  or sex = 'H' ";
-                    }else if(temp_school === 'D' && (temp_sex === 'F' || temp_sex === 'H')){
-                        var  sql = "SELECT picId FROM getTheTJW where school= 'D' and sex = 'F'  or sex = 'H' ";
-                    }
-
-                    //查
-                    var select=function(sql,callback){
-                        connection.query(sql,function(err,data){
-                            if(err){console.log(err)}
-
-
-                            var a = Math.floor(Math.random()*data.length);
-                            console.log(a);
-                            
-                            if(data[a].picId === temp_picUrl){
-                                a =  a - 1;
-                                console.log("\n\n\ntemp_picUrl是:"+temp_picUrl+"\n\n\n")
-                                console.log(data[a].picId);
-                                callback(data[a].picId,that)
-                            // return result[a].picId
-                        
-                            }else{
-                                console.log(data[a].picId);
-                                callback(data[a].picId,that)
-                                // return result[a].picId                               
-                            }
-
-
-                        })
-                    };
-                    
-                    function processdata(data){
-                        console.log("data是:"+data);
-                        that.body = imgType(msg.FromUserName,msg.ToUserName,now,data);
-                    }
-
-                    select(sql,processdata);
-                   
-                   return;
-
-
-                        
                   
-
-
-                    
-
-
-
-                
-                       
-                    
-                    
-                    
-           
-
-
-                  
-
-                    
-                    
-
-                        
 
                 }
-                else if(msg.MsgType === 'voice' && temp_xiehou !='' && temp_school !='' && temp_sex != '' && temp_image != ''){
+                else if(msg.MsgType === 'voice' && temp_xiehou !='' && temp_sex != '' && temp_image != ''){
 
                     var now = new Date().getTime()
                     this.status = 200;
