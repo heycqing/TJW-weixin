@@ -22,7 +22,7 @@ var config = {
 
 var app = new Koa();
 
-app.use(wechat(config.wechat))
+app.use(wechat(config.wechat));
 
-app.listen(2253);
-console.log('正在监2253端口！');
+app.listen(2222);
+console.log('正在监8677端口！');
