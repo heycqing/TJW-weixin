@@ -15,10 +15,16 @@ var util = require('../lib/util');
 // get请求access_token的连接；
 var prefix = 'https://api.weixin.qq.com/cgi-bin/';
 var api ={
+    i:0,
+    users:[],
     access_token: prefix + 'token?grant_type=client_credential',
 	uploadTempMaterial:prefix+'media/upload?',  //access_token=ACCESS_TOKEN&type=TYPE  上传临时素材
     getAccessToken : function(){
         return util.readFileAsync(wechat_file);
+    },
+    add:function(){
+        this.i+=1;
+        return this.i;
     }
 
 }
@@ -39,11 +45,13 @@ var temp_imgUrl = '';
 var temp_voice = '';
 // 留言1
 var temp_msgs = '';
+// 保存判断
+var temp_get = '' ;
 
 
 // 字符匹配存储
 var string = new Array();
-var i = 0 ;
+// var i = 0 ;
 
 // 存留言数组
 var Save_msgs = new Array();
@@ -234,7 +242,8 @@ module.exports = function(opt){
     // 实例化Wechat
     var wechat  = new Wechat(opt);
 
-    
+    api.add();
+    console.log('i是：'+api.i);
     return function *(next){
          
        var that = this;
@@ -267,6 +276,7 @@ module.exports = function(opt){
                return false;
            }
 
+
              
                // 获取xml数据
                var data = yield rawBody(this.req,{
@@ -280,417 +290,479 @@ module.exports = function(opt){
 
 
                var msg =  util.formatMsg(content.xml);
-
-               
-
-               // 测试测试
-               if(msg.MsgType === 'text' ){
-
-                   var content = msg.Content;
-                   console.log('content是:'+content);
-               
-                   if(content === '邂逅'){
-                       var now = new Date().getTime();
-
-                        // 插入字符
-                        string[i] = '';
-                        string[i] += content;
-                       console.log('string['+i+']是:'+string[i]+'\n'+'i是：'+i);
-                        
-                    //    console.log(string[i])
-                    // //    if(i != 0){
-                    //         i = i +1;                            
-                    // //    }
-                      
-                    //    console.log('string['+i+']是:'+string[i]+'\n'+'i是：'+i);
-
-                       this.status = 200;
-                       this.type = 'application/xml';
-                    //    temp_xiehou = content;
+               console.log('msg'+msg)
 
 
+            //    判断多人；
+            // var count = findit(string,user,msg.FromUserName);
+            //    if( count != -1 ){
+            //         string[i]  = string[count];
+            //    }
+                  // 测试测试
+            if( msg.MsgType === 'text' ){
 
-
-                      
-                       var back = '欢迎来到【邂逅实验室】，希望你能在这里邂逅到有趣的灵魂。'+'\n'+
-                                   '首先请你做一个关乎终身大事的选择：'+'\n'+
-                                   '我是男生，想邂逅男生，请回复A；'+'\n'+
-                                   '我是男生，想邂逅女生，请回复B；'+'\n'+
-                                   '我是女生，想邂逅男生，请回复C；'+'\n'+
-                                   '我是女生，想邂逅女生，请回复D。';
-                       
-
-                       this.body = xmlToreply(msg.FromUserName,msg.ToUserName,now,back)                        
-                       
-                       
-                   }else if(string[i].match('邂逅') != null && (content === 'A' || content === 'a')&& string[i].indexOf(1) === -1){
-                    var sex = content.toUpperCase();
-                    //    添加sex;
-                    string[i] +=sex;
-                    console.log(string[i])
-
-
-
-                       var now = new Date().getTime();
-                       this.status = 200;
-                       this.type = 'application/xml';
-                       var back ='你是男生，想邂逅男生，确认请回复1，重新选择请回复2，5分钟不回复就当做你确认了哦!';                        
-                       this.body = xmlToreply(msg.FromUserName,msg.ToUserName,now,back)                       
-
-                   }else if(string[i].match('邂逅') != null && (content === 'B' || content === 'b')&& string[i].indexOf(1) === -1){
-                    var sex = content.toUpperCase();
-                    //    添加sex;
-                    string[i] +=sex;
-                    console.log(string[i])
-                       
-                       var now = new Date().getTime();
-                       this.status = 200;
-                       this.type = 'application/xml';
-                       var back ='你是男生，想邂逅女生，确认请回复1，重新选择请回复2，5分钟不回复就当做你确认了哦!';
-                       this.body = xmlToreply(msg.FromUserName,msg.ToUserName,now,back)                        
-                       
-                       
-                   }else if(string[i].match('邂逅') != null && (content === 'C' || content === 'c')&& string[i].indexOf(1) === -1){
-                        var sex = content.toUpperCase();
-                       //    添加sex;
-                       string[i] +=sex;
-                       console.log(string[i])
-                       
-                       var now = new Date().getTime();
-                       this.status = 200;
-                       this.type = 'application/xml';
-                       var back ='你是女生，想邂逅男生，确认请回复1，重新选择请回复2，5分钟不回复就当做你确认了哦!';                        
-                       this.body = xmlToreply(msg.FromUserName,msg.ToUserName,now,back)                        
-                       
-                       
-                   }else if(string[i].match('邂逅') != null && (content === 'D' || content === 'd') && string[i].indexOf(1) === -1){
-                        var sex = content.toUpperCase();
-                        //    添加sex;
-                        string[i] +=sex;
-                       console.log(string[i])
-                       
-                       var now = new Date().getTime();
-                       this.status = 200;
-                       this.type = 'application/xml';
-                       var back ='你是女生，想邂逅女生，确认请回复1，重新选择请回复2，5分钟不回复就当做你确认了哦!';                        
-                       this.body = xmlToreply(msg.FromUserName,msg.ToUserName,now,back)                        
-                       
-                       
-                   }
-                   // 确认
-                   else if((string[i].indexOf('邂逅A') === 0 || string[i].indexOf('邂逅B') === 0 ||string[i].indexOf('邂逅C') === 0 || string[i].indexOf('邂逅D') === 0) && string[i].indexOf('image') === -1 &&content ==='1'){
-                       var now = new Date().getTime(); 
-                    //    temp_sure =content;  
-                        string[i] += content;
-                        while(string[i].length >4 ){
-                            string[i] =string[i].substring(0,string[i].length-1)
-                        }
-                        console.log(string[i])
-
-                       this.status = 200;
-                       this.type = 'application/xml';
-                       var back = '恭喜你成功加入今天的【邂逅实验室】！'+'\n'+
-                       '我将在实验室里努力挑选一位有缘人与你邂逅，'+'\n'+
-                       '接下来请你挑选一张你认为满意的本人照片发给我们，'+'\n'+
-                       '我们将用这张照片作为媒介，让你们进行一轮初步交流，'+'\n'+
-                       '所以一定要翻遍相册找张你非常满意的照片噢！'+'\n'+
-                       '温馨提示：只有一次上传照片的机会，一旦传错将无法修改。'
-
-
-                       
-
-                       this.body = xmlToreply(msg.FromUserName,msg.ToUserName,now,back)   
-                   }
-                   // 重新选择；
-                   else if((string[i].indexOf('邂逅A') === 0 || string[i].indexOf('邂逅B') === 0 ||string[i].indexOf('邂逅C') === 0 || string[i].indexOf('邂逅d') === 0)&&content === '2' && string[i].indexOf('image') === -1 &&string[i].length ===3){
-
-                       var now = new Date().getTime();                        
-                       this.status = 200;
-                       this.type = 'application/xml';
-                       var back = '请重新选择：'+'\n'+
-                       '我是男生，想邂逅男生，请回复A；'+'\n'+
-                       '我是男生，想邂逅女生，请回复B；'+'\n'+
-                       '我是女生，想邂逅男生，请回复C；'+'\n'+
-                       '我是女生，想邂逅女生，请回复D。';
-
-                       this.body = xmlToreply(msg.FromUserName,msg.ToUserName,now,back)         
-
-                   }
-                    //    上传完图片后，确认1
-                   else if((string[i].indexOf('邂逅A1image') === 0 || string[i].indexOf('邂逅B1image') === 0 ||string[i].indexOf('邂逅C1image') === 0 || string[i].indexOf('邂逅D1image') === 0)&& content ==='1'&& string[i].indexOf('2') === -1){
-
-                        // var temp_sure_nd = content;
-                        string[i] += content;
-                        while(string[i].length >10 ){
-                            string[i] =string[i].substring(0,string[i].length-1)
-                        }
-
-                        var now = new Date().getTime();                        
-                        this.status = 200;
-                        this.type = 'application/xml';
-                       var back = '恭喜你们成为邂逅实验室第XX对有缘人，对方也希望跟你认识，'+'\n'+
-                       '接下来请你们各自按照以下格式回复做一个自我介绍吧，当然对方也会向你介绍自己。'+'\n'+
-                       '1.该怎么称呼你？'+'\n'+
-                       '2.你是北师、北理、UIC的学生或是其他身份？'+'\n'+
-                       '3.一般怎么安排自己的周末？'+'\n'+
-                       '4.最喜欢的一首歌？'+'\n'+
-                       '5.最向往的城市？'
-                       this.body = xmlToreply(msg.FromUserName,msg.ToUserName,now,back)   
-                       
+                var content = msg.Content;
+                console.log('content是:'+content);
+            
+                if(content === '邂逅'){
+                    var now = new Date().getTime();
+                    // 全部初始化
+                    temp_sex = '';
+                     // 插入字符
+                     string[api.i] = '';
+                     string[api.i] += content;
+                    console.log('string['+api.i+']是:'+string[api.i]+'\n'+'i是：'+api.i);
                  
-                   }
-                    //上传完图片，重新选择2
-                    else if((string[i].indexOf('邂逅A1image') === 0 || string[i].indexOf('邂逅B1image') === 0 ||string[i].indexOf('邂逅C1image') === 0 || string[i].indexOf('邂逅D1image') === 0)&& content ==='2' && string[i].indexOf('text') === -1){
+                    this.status = 200;
+                    this.type = 'application/xml';
 
-                        string[i] += content;
-                        while(string[i].length >10 ){
-                            string[i] =string[i].substring(0,string[i].length-1)
-                        }
-                        var now = new Date().getTime();                        
-                        this.status = 200;
-                        this.type = 'application/xml';
-                        var back ='真的不愿意继续聊聊吗？这是今天唯一一个介绍给你的对象'+'\n'+
-                        '错过就没有了，你们也很难再联系上了。'+'\n'+
-                        '不愿邂逅请回复：1'+'\n'+
-                        '重新考虑请回复：2'+'\n';
-
-                       this.body = xmlToreply(msg.FromUserName,msg.ToUserName,now,back)   
-                        
-                    } 
-                    //  重新选择2，1的分支
-                    else if((string[i].indexOf('邂逅A1image2') === 0 || string[i].indexOf('邂逅B1image2') === 0 ||string[i].indexOf('邂逅C1image2') === 0 || string[i].indexOf('邂逅D1image2') === 0) && string[i].indexOf('text') === -1 && content === '1'){
-                        
-                       var back ='好吧，真的很遗憾呢，那我们今天就先到这了，欢迎明天再来！'
-                       string[i] = '';
-                       var now = new Date().getTime();                        
-                       this.status = 200;
-                       this.type = 'application/xml';
-                       this.body = xmlToreply(msg.FromUserName,msg.ToUserName,now,back); 
-                        
-
-                    }   
-                    //  重新选择2，2的分支
-                    else if((string[i].indexOf('邂逅A1image2') === 0 || string[i].indexOf('邂逅B1image2') === 0 ||string[i].indexOf('邂逅C1image2') === 0 || string[i].indexOf('邂逅D1image2') === 0) && string[i].indexOf('text') === -1 && content === '1'){
-
-                        var back ='请重新选择'+'\n'+
-                        '继续聊 请回复“1”，'+'\n'+
-                        '没兴趣 请回复“2”。'+'\n';
-                        var now = new Date().getTime();                        
-                        this.status = 200;
-                        this.type = 'application/xml';
-                       this.body = xmlToreply(msg.FromUserName,msg.ToUserName,now,back); 
-                        
-                    }
-                    
-                    // 存储留言1；
-                   else if((string[i].indexOf('邂逅A1image1') === 0 || string[i].indexOf('邂逅B1image1') === 0 ||string[i].indexOf('邂逅C1image1') === 0 || string[i].indexOf('邂逅D1image1') === 0) && string[i].indexOf('voice') === -1 && content != ''){
-                        // 存储留言   
-                        // temp_msgs = content;
-                        string[i] += msg.MsgType;
-                        while(string[i].length >14 ){
-                            string[i] = string[i].substring(0,string[i].length-1)
-                        }
-
-                        var SaveCon = content;
-                        console.log(Save_msgs);
-                        // var modSql = 'UPDATE TJWdata SET msgs = ? WHERE imgUrl = ?';
-                        // var modSqlParams = [SaveCon, temp_imgUrl];
-                        // //改
-                        // connection.query(modSql,modSqlParams,function (err, result) {
-                        // if(err){
-                        //         console.log('[UPDATE ERROR] - ',err.message);
-                        //         return;
-                        // }        
-                        // console.log('--------------------------UPDATE----------------------------');
-                        // console.log('UPDATE affectedRows',result.affectedRows);
-                        // console.log('-----------------------------------------------------------------\n\n');
-                        // });
-                    // 结束
-                    // 发送其他留言,必须要匹配到同一张图片的人；
-                        var a = Math.floor(Math.random()*Save_msgs.length);
-                        
-                          
-                        var back_msg = Save_msgs[a];
-                    
-                            
-                        
-
-                        this.status = 200;
-                        this.type = 'application/xml';
-                        var back ='\n\n'+'【'+'\n'+back_msg+'\n'+'】'+'\n\n\n'+'这是对方的回复，你们先得有个大致了解才能聊下去吧，祝你们聊的愉快！'+'\n\n'+'接下来请你发送一条展示自己的语音来吸引Ta，'+'\n'+
-                        '如果不知道说什么，可以跟Ta聊聊“你认为怎样的邂逅才算是美丽？”，'+'\n\n'+
-                        '或者唱一首应景的歌。'+'\n'+
-                        '请注意：1、语音长度需超过6秒，否则将影响系统传输；'+'\n\n'+
-                                      '2、语音上传成功后才会收到下一步提示，请稍等；'+'\n\n'+
-                                      '3、你只有一次上传语音的机会，一旦传错将无法修改。'+'\n\n\n\n'+'【接受到声音后，直接输入你想留下的文字就行了！】';
-                        Save_msgs.push(SaveCon);
-                                      
-                        this.body = xmlToreply(msg.FromUserName,msg.ToUserName,now,back) ;
-
-                   }else if( (string[i].indexOf('邂逅A1image1text') === 0 || string[i].indexOf('邂逅B1image1text') === 0 ||string[i].indexOf('邂逅C1image1text') === 0 || string[i].indexOf('邂逅D1image1text') === 0) && string[i].indexOf('voice') === 14  &&  content != ''){
-                        var a = Math.floor(Math.random()*Save_msgs.length);
-                      
-                            var back_msg = Save_msg_nd[a];
-                        
-                        this.status = 200;
-                        this.type = 'application/xml';
-                        var back ='你的留言我们已经转达了，'+'\n'+
-                        '如果还没有收到对方的留言，'+'\n'+
-                        '那可能是堵在路上了，请稍等。'+'\n\n\n'+'【'+back_msg+'】'+'\n\n\n';
-                        Save_msg_nd.push(content);
-                        
-                        // 所有设定重置
-                        // temp_voice = '';
-                        // temp_image = '';
-                        // temp_sure = '';
-                        // temp_sure_nd = '';
-                        string[i] = '';
-                        
-                        this.body = xmlToreply(msg.FromUserName,msg.ToUserName,now,back);
-
-                        
-
-
-                   }
-               
-                   else{
-
-                       var now = new Date().getTime();
-                       this.status = 200;
-                       this.type = 'application/xml';
-                       var back = '请重新开始 【 邂逅 】';
-                       string[i] = '';
-                       this.body = xmlToreply(msg.FromUserName,msg.ToUserName,now,back);
-                       console.log("that.body:"+this.body);
-
-                   }
-
-                       
-               }
-            //    图片
-               else if(msg.MsgType === 'image' && (string[i].indexOf('邂逅A1') === 0 || string[i].indexOf('邂逅B1') === 0 ||string[i].indexOf('邂逅C1') === 0 || string[i].indexOf('邂逅D1') === 0) ){
-                   var now = new Date().getTime()
-                   
-                //    temp_image = msg.MsgType;
-                //    temp_imgUrl = msg.PicUrl;
-                //    temp_sure ='';                       
-                    
-                     string[i] += msg.MsgType;
-                     console.log('图片：'+string[i])
-                     while(string[i].length >9 ){
-                        string[i] =string[i].substring(0,string[i].length-1)
-                    }
+                    var back = '欢迎来到【邂逅实验室】，希望你能在这里邂逅到有趣的灵魂。'+'\n'+
+                                '首先请你做一个关乎终身大事的选择：'+'\n'+
+                                '我是男生，想邂逅男生，请回复A；'+'\n'+
+                                '我是男生，想邂逅女生，请回复B；'+'\n'+
+                                '我是女生，想邂逅男生，请回复C；'+'\n'+
+                                '我是女生，想邂逅女生，请回复D。';
                     
 
-                   this.status = 200;
-                   this.type = 'application/xml';
-                   var that =this;
-                    // 连接数据库
-                   var connection = mysql.createConnection({     
-                    host: '39.108.58.83',
-                    user: 'root',
-                    password: '1234',
-                    port: '3306',
-                    database: 'TJW',
-                    }); 
+                    this.body = xmlToreply(msg.FromUserName,msg.ToUserName,now,back)                        
+                    
+                    
+                }else if(string[api.i].match('邂逅') != null && (content === 'A' || content === 'a')&& temp_sex ===''&& string[api.i].indexOf(1) === -1){
+                 var sex = content.toUpperCase();
+                 temp_sex = content;
+                 //    添加sex;
+
+                 string[api.i] +=sex;
+                 console.log(string[api.i])
+
+
+
+                    var now = new Date().getTime();
+                    this.status = 200;
+                    this.type = 'application/xml';
+                    var back ='你是男生，想邂逅男生，确认请回复1，重新选择请回复2，5分钟不回复就当做你确认了哦!';                        
+                    this.body = xmlToreply(msg.FromUserName,msg.ToUserName,now,back)                       
+
+                }else if(string[api.i].match('邂逅') != null && (content === 'B' || content === 'b')&& temp_sex ===''&& string[api.i].indexOf(1) === -1){
+                 var sex = content.toUpperCase();
+                 temp_sex = content;
                  
-                    connection.connect();
-                    var  addSql = 'INSERT INTO TJWdata(sex,imgUrl,imgId,voiceId) VALUES(?,?,?,?)';
-                    var  addSqlParams = [temp_sex,msg.PicUrl,msg.MediaId,''];
-                    //增
-                    connection.query(addSql,addSqlParams,function (err, result) {
-                            if(err){
-                             console.log('[INSERT ERROR] - ',err.message);
-                             return;
-                            }        
+                 //    添加sex;
+                 string[api.i] +=sex;
+                 console.log(string[api.i])
+                    
+                    var now = new Date().getTime();
+                    this.status = 200;
+                    this.type = 'application/xml';
+                    var back ='你是男生，想邂逅女生，确认请回复1，重新选择请回复2，5分钟不回复就当做你确认了哦!';
+                    this.body = xmlToreply(msg.FromUserName,msg.ToUserName,now,back)                        
+                    
+                    
+                }else if(string[api.i].match('邂逅') != null && (content === 'C' || content === 'c')&& temp_sex ==='' && string[api.i].indexOf(1) === -1){
+                     var sex = content.toUpperCase();
+                 temp_sex = content;
                      
-                           console.log('--------------------------INSERT----------------------------');
-                           //console.log('INSERT ID:',result.insertId);        
-                           console.log('INSERT ID:',result);        
-                           console.log('-----------------------------------------------------------------\n\n');  
-                    });
-                connection.end();
-                    // 结束
-
-                    // 发送图文信息；
-                   this.body = tuWen(msg.FromUserName,msg.ToUserName,msg.PicUrl);
-                   
-                 
-
-               }
-    
-               else if(msg.MsgType === 'voice' && (string[i].indexOf('邂逅A1image1text') === 0 || string[i].indexOf('邂逅B1image1text') === 0 ||string[i].indexOf('邂逅C1image1text') === 0 || string[i].indexOf('邂逅D1image1text') === 0)){
-
-                   var now = new Date().getTime()
-                   this.status = 200;
-                   this.type = 'application/xml';
-
-                   string[i] += msg.MsgType;
-                   while(string[i].length >19 ){
-                    string[i] =string[i].substring(0,string[i].length-1)
-                }
-                   console.log('语音:'+string)
-                   
-                   temp_voice = msg.MediaId;
-
-                   var voiceID = msg.MediaId;
-                    Save_voice.push(voiceID);
-                   // 更新数据
-                    // 新增时间和数据库语句
-                    var connection = mysql.createConnection({     
-                       host: '39.108.58.83',
-                       user: 'root',
-                       password: '1234',
-                       port: '3306',
-                       database: 'TJW',
-                   }); 
+                    //    添加sex;
+                    string[api.i] +=sex;
+                    console.log(string[api.i])
                     
-                    connection.connect();
+                    var now = new Date().getTime();
+                    this.status = 200;
+                    this.type = 'application/xml';
+                    var back ='你是女生，想邂逅男生，确认请回复1，重新选择请回复2，5分钟不回复就当做你确认了哦!';                        
+                    this.body = xmlToreply(msg.FromUserName,msg.ToUserName,now,back)                        
+                    
+                    
+                }else if(string[api.i].match('邂逅') != null && (content === 'D' || content === 'd') && temp_sex ==''&& string[api.i].indexOf(1) === -1){
+                     var sex = content.toUpperCase();
+                 temp_sex = content;
+                     
+                     //    添加sex;
+                     string[api.i] +=sex;
+                    console.log(string[api.i])
+                    
+                    var now = new Date().getTime();
+                    this.status = 200;
+                    this.type = 'application/xml';
+                    var back ='你是女生，想邂逅女生，确认请回复1，重新选择请回复2，5分钟不回复就当做你确认了哦!';                        
+                    this.body = xmlToreply(msg.FromUserName,msg.ToUserName,now,back)                        
+                    
+                    
+                }
+                // 确认
+                else if((string[api.i].indexOf('邂逅A') === 0 || string[api.i].indexOf('邂逅B') === 0 ||string[api.i].indexOf('邂逅C') === 0 || string[api.i].indexOf('邂逅D') === 0) && string[api.i].indexOf('image') === -1 &&content ==='1'){
+                    var now = new Date().getTime(); 
+                 //    temp_sure =content;  
+                     string[api.i] += content;
+                     while(string[api.i].length >4 ){
+                         string[api.i] =string[api.i].substring(0,string[api.i].length-1)
+                     }
+                     console.log(string[api.i])
 
-                    var modSql = 'UPDATE TJWdata SET voiceId = ? WHERE imgUrl = ?';
-                    var modSqlParams = [voiceID, temp_imgUrl];
-                    //改
-                    connection.query(modSql,modSqlParams,function (err, result) {
-                    if(err){
-                            console.log('[UPDATE ERROR] - ',err.message);
-                            return;
-                    }        
-                    console.log('--------------------------UPDATE----------------------------');
-                    console.log('UPDATE affectedRows',result.affectedRows);
-                    console.log('-----------------------------------------------------------------\n\n');
-                    });
+                    this.status = 200;
+                    this.type = 'application/xml';
+                    var back = '恭喜你成功加入今天的【邂逅实验室】！'+'\n'+
+                    '我将在实验室里努力挑选一位有缘人与你邂逅，'+'\n'+
+                    '接下来请你挑选一张你认为满意的本人照片发给我们，'+'\n'+
+                    '我们将用这张照片作为媒介，让你们进行一轮初步交流，'+'\n'+
+                    '所以一定要翻遍相册找张你非常满意的照片噢！'+'\n'+
+                    '温馨提示：只有一次上传照片的机会，一旦传错将无法修改。'
 
-            // 发送语言，需要匹配到相关图片；
-            // 发送语音没调试？？
-                    var a = Math.floor(Math.random()*Save_voice.length);
-                                
-                                
-                    var back_msg = Save_voice[a];
 
-                var back ='听到Ta对你说的话了吗？'+'\n'+
-               '相信聊到这里你们都已经有了简单的了解，'+'\n'+
-               '赘述太多，或许反而会让这件事变得不那么浪漫，'+'\n'+
-               '最后一次机会，抓紧时间给Ta留下一段想说的文字吧！'+'\n'+
-               '你们当然也可以给对方留下自己的联系方式，如果还想进一步沟通的话。'+'\n'+
-               '温馨提示：留言一旦发出将无法修改。'
-          
+                    
 
-            //    this.body = xmlToreply(msg.FromUserName,msg.ToUserName,now,back);
-               this.body = voicetype(msg.FromUserName,msg.ToUserName,now,back_msg)
-            //    temp_voice ='';
+                    this.body = xmlToreply(msg.FromUserName,msg.ToUserName,now,back)   
+                }
+                // 重新选择；
+                else if((string[api.i].indexOf('邂逅A') === 0 || string[api.i].indexOf('邂逅B') === 0 ||string[api.i].indexOf('邂逅C') === 0 || string[api.i].indexOf('邂逅D') === 0)&&content === '2' && string[api.i].indexOf('image') === -1 &&string[api.i].length ===3){
+                    temp_sex = '';
+                    string[api.i] = '邂逅'
 
-               }else{
-                   var now = new Date().getTime();
-                   this.status = 200;
-                   this.type = 'application/xml';
-                   var back = '听不懂你在说的是什么？';
-                   this.body = xmlToreply(msg.FromUserName,msg.ToUserName,now,back)
-                   console.log("that.body:"+this.body)
-               }
+                    var now = new Date().getTime();                        
+                    this.status = 200;
+                    this.type = 'application/xml';
+                    var back = '请重新选择：'+'\n'+
+                    '我是男生，想邂逅男生，请回复A；'+'\n'+
+                    '我是男生，想邂逅女生，请回复B；'+'\n'+
+                    '我是女生，想邂逅男生，请回复C；'+'\n'+
+                    '我是女生，想邂逅女生，请回复D。';
+
+                    this.body = xmlToreply(msg.FromUserName,msg.ToUserName,now,back)         
+
+                }
+                 //    上传完图片后，确认1
+                else if((string[api.i].indexOf('邂逅A1image') === 0 || string[api.i].indexOf('邂逅B1image') === 0 ||string[api.i].indexOf('邂逅C1image') === 0 || string[api.i].indexOf('邂逅D1image') === 0)&& content ==='1'&& string[api.i].indexOf('2') === -1){
+
+                     // var temp_sure_nd = content;
+                     string[api.i] += content;
+                     while(string[api.i].length >10 ){
+                         string[api.i] =string[api.i].substring(0,string[api.i].length-1)
+                     }
+
+                     var now = new Date().getTime();                        
+                     this.status = 200;
+                     this.type = 'application/xml';
+                    var back = '恭喜你们成为邂逅实验室第XX对有缘人，对方也希望跟你认识，'+'\n'+
+                    '接下来请你们各自按照以下格式回复做一个自我介绍吧，当然对方也会向你介绍自己。'+'\n'+
+                    '1.该怎么称呼你？'+'\n'+
+                    '2.你是北师、北理、UIC的学生或是其他身份？'+'\n'+
+                    '3.一般怎么安排自己的周末？'+'\n'+
+                    '4.最喜欢的一首歌？'+'\n'+
+                    '5.最向往的城市？'
+                    this.body = xmlToreply(msg.FromUserName,msg.ToUserName,now,back)   
+                    
+              
+                }
+                 //上传完图片，重新选择2
+                 else if((string[api.i].indexOf('邂逅A1image') === 0 || string[api.i].indexOf('邂逅B1image') === 0 ||string[api.i].indexOf('邂逅C1image') === 0 || string[api.i].indexOf('邂逅D1image') === 0)&& content ==='2' && string[api.i].indexOf('text') === -1 &&string[api.i].length === 9){
+
+                     string[api.i] += content;
+                     while(string[api.i].length >10 ){
+                         string[api.i] =string[api.i].substring(0,string[api.i].length-1)
+                     }
+                     console.log('string\n\n'+string[api.i])
+                     var now = new Date().getTime();                        
+                     this.status = 200;
+                     this.type = 'application/xml';
+                     var back ='真的不愿意继续聊聊吗？这是今天唯一一个介绍给你的对象'+'\n'+
+                     '错过就没有了，你们也很难再联系上了。'+'\n'+
+                     '不愿邂逅请回复：1'+'\n'+
+                     '重新考虑请回复：2'+'\n';
+
+                    this.body = xmlToreply(msg.FromUserName,msg.ToUserName,now,back)   
+                     
+                 } 
+                 //  重新选择2，1的分支
+                 else if((string[api.i].indexOf('邂逅A1image2') === 0 || string[api.i].indexOf('邂逅B1image2') === 0 ||string[api.i].indexOf('邂逅C1image2') === 0 || string[api.i].indexOf('邂逅D1image2') === 0) && string[api.i].indexOf('text') === -1 && content === '1' && string[api.i].length === 10){
+
+                     
+                    var back ='好吧，真的很遗憾呢，那我们今天就先到这了，欢迎明天再来！'
+                    string[api.i] = '';
+                    var now = new Date().getTime();                        
+                    this.status = 200;
+                    this.type = 'application/xml';
+                    this.body = xmlToreply(msg.FromUserName,msg.ToUserName,now,back); 
+                     
+
+                 }   
+                 //  重新选择2，2的分支
+                 else if((string[api.i].indexOf('邂逅A1image2') === 0 || string[api.i].indexOf('邂逅B1image2') === 0 ||string[api.i].indexOf('邂逅C1image2') === 0 || string[api.i].indexOf('邂逅D1image2') === 0) && string[api.i].indexOf('text') === -1 && string[api.i].indexOf('image1') === -1 && content === '2' && string[api.i].length === 10){
+
+                    string[api.i] += content;
+                     while(string[api.i].length >11 ){
+                         string[api.i] =string[api.i].substring(0,string[api.i].length-1)
+                     }
+                     console.log("\nstring\n"+string[api.i])
+                     var back ='请重新选择'+'\n'+
+                     '继续聊 请回复“1”，'+'\n'+
+                     '没兴趣 请回复“2”。'+'\n';
+                     var now = new Date().getTime();                        
+                     this.status = 200;
+                     this.type = 'application/xml';
+                    this.body = xmlToreply(msg.FromUserName,msg.ToUserName,now,back); 
+                     
+                 }
+                 // 重新选择2，2，1的分支；
+                 else if( (string[api.i].indexOf('邂逅A1image22') === 0 || string[api.i].indexOf('邂逅B1image22') === 0 || string[api.i].indexOf('邂逅C1image22') === 0 || string[api.i].indexOf('邂逅D1image22') === 0)  && content === '1' && string[api.i].indexOf('text') === -1){
+                     
+                     
+                     string[api.i] = '邂逅A1image1';
+
+                     var now = new Date().getTime();                        
+                     this.status = 200;
+                     this.type = 'application/xml';
+                    var back = '恭喜你们成为邂逅实验室第XX对有缘人，对方也希望跟你认识，'+'\n'+
+                    '接下来请你们各自按照以下格式回复做一个自我介绍吧，当然对方也会向你介绍自己。'+'\n'+
+                    '1.该怎么称呼你？'+'\n'+
+                    '2.你是北师、北理、UIC的学生或是其他身份？'+'\n'+
+                    '3.一般怎么安排自己的周末？'+'\n'+
+                    '4.最喜欢的一首歌？'+'\n'+
+                    '5.最向往的城市？'
+                    this.body = xmlToreply(msg.FromUserName,msg.ToUserName,now,back)  
+
+                 }
+                 // 重新选择2，2，2的分支；
+                 else if((string[api.i].indexOf('邂逅A1image22') === 0 || string[api.i].indexOf('邂逅B1image22') === 0 || string[api.i].indexOf('邂逅C1image22') === 0 || string[api.i].indexOf('邂逅D1image22') === 0)  && content === '2' && string[api.i].indexOf('text') === -1){
+                     string[api.i] = '邂逅A1image2';
+                     var now = new Date().getTime();                        
+                     this.status = 200;
+                     this.type = 'application/xml';
+                     var back ='真的不愿意继续聊聊吗？这是今天唯一一个介绍给你的对象'+'\n'+
+                     '错过就没有了，你们也很难再联系上了。'+'\n'+
+                     '不愿邂逅请回复：1'+'\n'+
+                     '重新考虑请回复：2'+'\n';
+
+                    this.body = xmlToreply(msg.FromUserName,msg.ToUserName,now,back)  
+
+                 }
+                 
+                 
+                 // 存储留言1；
+                else if((string[api.i].indexOf('邂逅A1image1') === 0 || string[api.i].indexOf('邂逅B1image1') === 0 ||string[api.i].indexOf('邂逅C1image1') === 0 || string[api.i].indexOf('邂逅D1image1') === 0) && string[api.i].indexOf('voice') === -1 && content != ''){
+                     // 存储留言   
+                     // temp_msgs = content;
+                     string[api.i] += msg.MsgType;
+                     while(string[api.i].length >14 ){
+                         string[api.i] = string[api.i].substring(0,string[api.i].length-1)
+                     }
+
+                     var SaveCon = content;
+                     console.log(Save_msgs);
+                     // var modSql = 'UPDATE TJWdata SET msgs = ? WHERE imgUrl = ?';
+                     // var modSqlParams = [SaveCon, temp_imgUrl];
+                     // //改
+                     // connection.query(modSql,modSqlParams,function (err, result) {
+                     // if(err){
+                     //         console.log('[UPDATE ERROR] - ',err.message);
+                     //         return;
+                     // }        
+                     // console.log('--------------------------UPDATE----------------------------');
+                     // console.log('UPDATE affectedRows',result.affectedRows);
+                     // console.log('-----------------------------------------------------------------\n\n');
+                     // });
+                 // 结束
+                 // 发送其他留言,必须要匹配到同一张图片的人；
+                     var a = Math.floor(Math.random()*Save_msgs.length);
+                     
+                       
+                     var back_msg = Save_msgs[a];
+                 
+                         
+                     
+
+                     this.status = 200;
+                     this.type = 'application/xml';
+                     var back ='\n\n'+'【'+'\n'+back_msg+'\n'+'】'+'\n\n\n'+'这是对方的回复，你们先得有个大致了解才能聊下去吧，祝你们聊的愉快！'+'\n\n'+'接下来请你发送一条展示自己的语音来吸引Ta，'+'\n'+
+                     '如果不知道说什么，可以跟Ta聊聊“你认为怎样的邂逅才算是美丽？”，'+'\n\n'+
+                     '或者唱一首应景的歌。'+'\n'+
+                     '请注意：1、语音长度需超过6秒，否则将影响系统传输；'+'\n\n'+
+                                   '2、语音上传成功后才会收到下一步提示，请稍等；'+'\n\n'+
+                                   '3、你只有一次上传语音的机会，一旦传错将无法修改。'+'\n\n\n\n'+'【接受到声音后，直接输入你想留下的文字就行了！】';
+                     Save_msgs.push(SaveCon);
+                                   
+                     this.body = xmlToreply(msg.FromUserName,msg.ToUserName,now,back) ;
+
+                }else if( (string[api.i].indexOf('邂逅A1image1text') === 0 || string[api.i].indexOf('邂逅B1image1text') === 0 ||string[api.i].indexOf('邂逅C1image1text') === 0 || string[api.i].indexOf('邂逅D1image1text') === 0) && string[api.i].indexOf('voice') === 14  &&  content != ''){
+                     var a = Math.floor(Math.random()*Save_msgs.length);
+                   
+                         var back_msg = Save_msg_nd[a];
+                     
+                     this.status = 200;
+                     this.type = 'application/xml';
+                     var back ='你的留言我们已经转达了，'+'\n'+
+                     '如果还没有收到对方的留言，'+'\n'+
+                     '那可能是堵在路上了，请稍等。'+'\n\n\n'+'【'+back_msg+'】'+'\n\n\n';
+                     Save_msg_nd.push(content);
+                     
+                     temp = string[api.i]
+                     // 所有设定重置
+                     string[api.i] = '';
+                     
+                     this.body = xmlToreply(msg.FromUserName,msg.ToUserName,now,back);
+
+                }
+                // 留下联系方式
+                else if(temp.match('邂逅A1image1textvoicetext') !== null || temp.match('邂逅B1image1textvoicetext') !== null || temp.match('邂逅C1image1textvoicetext') !== null || temp.match('邂逅D1image1textvoicetext') !== null){
+                    var back =  '好了，今天【邂逅实验室】的线上之旅就到此结束了。'+'\n'+
+                                '哦，对了，为了纪念这场实验，也为了更加完整的体现这场邂逅，'+'\n'+
+                                '我们准备了名额有限的一部分线下邂逅机会，'+'\n'+
+                                '在我们精心挑选的时间和场地（此处待定）。 '+'\n'+
+                                '如果你希望以这样的方式圆满完成这次邂逅，'+'\n'+
+                                '请留下  【 姓名+手机号码 】   以便我们联系你，'+'\n'+
+                                '双方均填入准确信息即为成功报名，任何一方放弃填写均不生效。';
+                    this.status = 200;
+                    this.type = 'application/xml';
+                    var now = new Date().getTime();
+                    s
+                    this.body = xmlToreply(msg.FromUserName,msg.ToUserName,now,back);
+                    
+                }
+            
+                else{
+
+                    var now = new Date().getTime();
+                    this.status = 200;
+                    this.type = 'application/xml';
+                    var back = '请重新开始 【 邂逅 】';
+                    string[api.i] = '';
+                    this.body = xmlToreply(msg.FromUserName,msg.ToUserName,now,back);
+                    console.log("that.body:"+this.body);
+
+                }
+
+                    
+            }
+                 //    图片
+            else if(msg.MsgType === 'image' && (string[api.i].indexOf('邂逅A1') === 0 || string[api.i].indexOf('邂逅B1') === 0 ||string[api.i].indexOf('邂逅C1') === 0 || string[api.i].indexOf('邂逅D1') === 0) ){
+                     var now = new Date().getTime()
+                     
+                     //    temp_image = msg.MsgType;
+                     //    temp_imgUrl = msg.PicUrl;
+                     //    temp_sure ='';                       
+                         
+                         string[api.i] += msg.MsgType;
+                         console.log('图片：'+string[api.i])
+                         while(string[api.i].length >9 ){
+                             string[api.i] =string[api.i].substring(0,string[api.i].length-1)
+                         }
+                         
+
+                     this.status = 200;
+                     this.type = 'application/xml';
+                     var that =this;
+                         // 连接数据库
+                     var connection = mysql.createConnection({     
+                         host: '39.108.58.83',
+                         user: 'root',
+                         password: '1234',
+                         port: '3306',
+                         database: 'TJW',
+                         }); 
+                     
+                         connection.connect();
+                         var  addSql = 'INSERT INTO TJWdata(sex,imgUrl,imgId,voiceId) VALUES(?,?,?,?)';
+                         var  addSqlParams = [temp_sex,msg.PicUrl,msg.MediaId,''];
+                         //增
+                         connection.query(addSql,addSqlParams,function (err, result) {
+                                 if(err){
+                                 console.log('[INSERT ERROR] - ',err.message);
+                                 return;
+                                 }        
+                         
+                             console.log('--------------------------INSERT----------------------------');
+                             //console.log('INSERT ID:',result.insertId);        
+                             console.log('INSERT ID:',result);        
+                             console.log('-----------------------------------------------------------------\n\n');  
+                         });
+                     connection.end();
+                         // 结束
+
+                         // 发送图文信息；
+                     this.body = tuWen(msg.FromUserName,msg.ToUserName,msg.PicUrl);
+                     
+                     
+
+             }
+         
+                 else if(msg.MsgType === 'voice' && (string[api.i].indexOf('邂逅A1image1text') === 0 || string[api.i].indexOf('邂逅B1image1text') === 0 ||string[api.i].indexOf('邂逅C1image1text') === 0 || string[api.i].indexOf('邂逅D1image1text') === 0)){
+
+                     var now = new Date().getTime()
+                     this.status = 200;
+                     this.type = 'application/xml';
+
+                     string[api.i] += msg.MsgType;
+                     while(string[api.i].length >19 ){
+                         string[api.i] =string[api.i].substring(0,string[api.i].length-1)
+                     }
+                     console.log('语音:'+string)
+                     
+                     temp_voice = msg.MediaId;
+
+                     var voiceID = msg.MediaId;
+                         Save_voice.push(voiceID);
+                     // 更新数据
+                         // 新增时间和数据库语句
+                         var connection = mysql.createConnection({     
+                         host: '39.108.58.83',
+                         user: 'root',
+                         password: '1234',
+                         port: '3306',
+                         database: 'TJW',
+                     }); 
+                         
+                         connection.connect();
+
+                         var modSql = 'UPDATE TJWdata SET voiceId = ? WHERE imgUrl = ?';
+                         var modSqlParams = [voiceID, temp_imgUrl];
+                         //改
+                         connection.query(modSql,modSqlParams,function (err, result) {
+                         if(err){
+                                 console.log('[UPDATE ERROR] - ',err.message);
+                                 return;
+                         }        
+                         console.log('--------------------------UPDATE----------------------------');
+                         console.log('UPDATE affectedRows',result.affectedRows);
+                         console.log('-----------------------------------------------------------------\n\n');
+                         });
+
+                             // 发送语言，需要匹配到相关图片；
+                             // 发送语音没调试？？
+                                     var a = Math.floor(Math.random()*Save_voice.length);
+                                                 
+                                                 
+                                     var back_msg = Save_voice[a];
+
+                                 var back ='听到Ta对你说的话了吗？'+'\n'+
+                             '相信聊到这里你们都已经有了简单的了解，'+'\n'+
+                             '赘述太多，或许反而会让这件事变得不那么浪漫，'+'\n'+
+                             '最后一次机会，抓紧时间给Ta留下一段想说的文字吧！'+'\n'+
+                             '你们当然也可以给对方留下自己的联系方式，如果还想进一步沟通的话。'+'\n'+
+                             '温馨提示：留言一旦发出将无法修改。'
+                         
+
+                             //    this.body = xmlToreply(msg.FromUserName,msg.ToUserName,now,back);
+                             this.body = voicetype(msg.FromUserName,msg.ToUserName,now,back_msg)
+                             //    temp_voice ='';
+
+                 }else{
+                     var now = new Date().getTime();
+                     this.status = 200;
+                     this.type = 'application/xml';
+                     var back = '听不懂你在说的是什么？';
+                     this.body = xmlToreply(msg.FromUserName,msg.ToUserName,now,back)
+                     console.log("that.body:"+this.body)
+                 }
+         
+              
+               
+
            
-            //    return ;
+                
+                    //    return ;
              
-           }
+           
+           
+                }
          
            
        }
@@ -872,6 +944,15 @@ function date2str(x, y) {
     });
 }
 
+//  遍历对象数组，查找
+function findit(arr,attr,val){
+    for (var i=0;i<arr.length;i++){
+        if(arr[i][attr] == val){
+            return i;
+        }
+    }
+    return -1;
+}
 
 
 
