@@ -12,19 +12,43 @@ var wechat_file = path.join(__dirname,'../config/wechat_file.txt')
 // 处理xml;
 var rawBody = require('raw-body');
 var util = require('../lib/util');
+
+
 // get请求access_token的连接；
 var prefix = 'https://api.weixin.qq.com/cgi-bin/';
 var api ={
     i:0,
     users:[],
+    access_token_:'',
     access_token: prefix + 'token?grant_type=client_credential',
-	uploadTempMaterial:prefix+'media/upload?',  //access_token=ACCESS_TOKEN&type=TYPE  上传临时素材
+    uploadTempMaterial:prefix+'media/upload?',  //access_token=ACCESS_TOKEN&type=TYPE  上传临时素材
+    keyWord:prefix+'get_current_autoreply_info?access_token=',
+    openId:prefix+'user/info/batchget?access_token=',
     getAccessToken : function(){
         return util.readFileAsync(wechat_file);
     },
     add:function(){
         this.i+=1;
         return this.i;
+    },
+    getUserInfo : function(){
+        if(api.access_token_){
+           var url = api.openId+api.access_token_;
+           console.log('获取用户信息url:'+url);
+   
+           return new Promise(function(resolve,reject){
+               // 请求地址
+                request({url: url, json:true}).then(function(response){
+                console.log(response.body);
+                var data = response.body;
+                console.log('获取用户是：'+data);
+                resolve(data);
+        
+                });
+            })
+        }else{
+            console.log('accee_token为空！')
+        }
     }
 
 }
@@ -115,10 +139,61 @@ function Wechat(opt) {
         that.expires_in = data.expires_in;
     
         that.saveAccessToken(data);
+        //   设置自动回规则
+        // that.saveAccessTokenInConfig(data);
+        that.getUserInfo(data);
+        
+        // api.access_token_ = that.access_token_;
+        
+        // that.getAutoReply(that.access_token);
+        
     })
+
+
+}
+// 获取用户信息
+Wechat.prototype.getUserInfo = function(data){
+    if(data){
+       var url = api.openId+data;
+       console.log('获取用户信息url:'+url);
+
+       return new Promise(function(resolve,reject){
+           // 请求地址
+            request({url: url, json:true}).then(function(response){
+            console.log(response.body);
+            var data_ = response.body;
+            console.log('获取用户是：'+data_);
+            resolve(data_);
+    
+            });
+        })
+    }else{
+        console.log('accee_token为空！')
+    }
 }
 
+// 更新自动回复规则
+Wechat.prototype.getAutoReply = function(a){
+    
 
+    var url = api.keyWord + a;
+    console.log('自动回复规则url:'+url);
+
+    return new Promise(function(resolve,reject){
+        // 请求地址
+      request({url: url, json:true}).then(function(response){
+          console.log(response.body);
+        var data = response.body;
+        console.log('自动回复规则是：'+data.is_add_friend_reply_open);
+        resolve(data);
+
+      });
+
+  })
+
+
+
+}
 
 // 原型链添加函数
 // 检查合法性；
@@ -241,9 +316,6 @@ module.exports = function(opt){
 
     // 实例化Wechat
     var wechat  = new Wechat(opt);
-
-    api.add();
-    console.log('i是：'+api.i);
     return function *(next){
          
        var that = this;
@@ -264,11 +336,14 @@ module.exports = function(opt){
            if(sha === signature){
                this.body = echostr+'';
                console.log('相等');
+
+
        
            }else{
                this.body = 'wrong!';
                console.log('wrong!');
            }
+
        }else if(this.method === 'POST'){
 
            if(sha !== signature){
@@ -293,12 +368,10 @@ module.exports = function(opt){
                console.log('msg'+msg)
 
 
-            //    判断多人；
-            // var count = findit(string,user,msg.FromUserName);
-            //    if( count != -1 ){
-            //         string[i]  = string[count];
-            //    }
-                  // 测试测试
+
+            // 判断是否是同一个人，并且提取content内容，
+           
+            // 测试测试
             if( msg.MsgType === 'text' ){
 
                 var content = msg.Content;
@@ -602,21 +675,21 @@ module.exports = function(opt){
 
                 }
                 // 留下联系方式
-                else if(temp.match('邂逅A1image1textvoicetext') !== null || temp.match('邂逅B1image1textvoicetext') !== null || temp.match('邂逅C1image1textvoicetext') !== null || temp.match('邂逅D1image1textvoicetext') !== null){
-                    var back =  '好了，今天【邂逅实验室】的线上之旅就到此结束了。'+'\n'+
-                                '哦，对了，为了纪念这场实验，也为了更加完整的体现这场邂逅，'+'\n'+
-                                '我们准备了名额有限的一部分线下邂逅机会，'+'\n'+
-                                '在我们精心挑选的时间和场地（此处待定）。 '+'\n'+
-                                '如果你希望以这样的方式圆满完成这次邂逅，'+'\n'+
-                                '请留下  【 姓名+手机号码 】   以便我们联系你，'+'\n'+
-                                '双方均填入准确信息即为成功报名，任何一方放弃填写均不生效。';
-                    this.status = 200;
-                    this.type = 'application/xml';
-                    var now = new Date().getTime();
-                    s
-                    this.body = xmlToreply(msg.FromUserName,msg.ToUserName,now,back);
+                // else if(temp.match('邂逅A1image1textvoicetext') !== null || temp.match('邂逅B1image1textvoicetext') !== null || temp.match('邂逅C1image1textvoicetext') !== null || temp.match('邂逅D1image1textvoicetext') !== null){
+                //     var back =  '好了，今天【邂逅实验室】的线上之旅就到此结束了。'+'\n'+
+                //                 '哦，对了，为了纪念这场实验，也为了更加完整的体现这场邂逅，'+'\n'+
+                //                 '我们准备了名额有限的一部分线下邂逅机会，'+'\n'+
+                //                 '在我们精心挑选的时间和场地（此处待定）。 '+'\n'+
+                //                 '如果你希望以这样的方式圆满完成这次邂逅，'+'\n'+
+                //                 '请留下  【 姓名+手机号码 】   以便我们联系你，'+'\n'+
+                //                 '双方均填入准确信息即为成功报名，任何一方放弃填写均不生效。';
+                //     this.status = 200;
+                //     this.type = 'application/xml';
+                //     var now = new Date().getTime();
+                //     s
+                //     this.body = xmlToreply(msg.FromUserName,msg.ToUserName,now,back);
                     
-                }
+                // }
             
                 else{
 
@@ -814,25 +887,6 @@ function xmlToreply_body(){
 }
 
 
-// 回复图片；
-function *imgType_body(){
-    // console.log(this.body)
-    var now = new Date().getTime();
-    
-    this.status = 200;
-    this.type = 'application/xml';
-    var a ='o5UHAw4wsVakuATXga0y4JnLZ3Gc';
-    var b = 'gh_2b1961cfa81a';
-    // var c = new Date().getTime();
-    var d ='Pkq5wlSpbw0Db_JUeSioVFMycCKdy5gfCBlCc43AjfrqaRNpx-d5A0-Ub89t97z1'
-    var reply = '<xml><ToUserName>'+a+'</ToUserName><FromUserName>'+b
-    +'</FromUserName><CreateTime>'+now+'</CreateTime><MsgType>image</MsgType><Image><MediaId>'+d
-    +'</MediaId></Image></xml>'
-    // console.log(reply);
-   
-    
-}
-
 
 // 回复文本信息；
 function xmlToreply(a,b,c,d){
@@ -879,6 +933,11 @@ function tuWen(a,b,c,d){
 function voicetype(a,b,c,d){
    var reply = '<xml><ToUserName>'+a+'</ToUserName><FromUserName>'+b+'</FromUserName><CreateTime>'+c+'</CreateTime><MsgType>voice</MsgType><Voice><MediaId>'+d+'</MediaId></Voice></xml>';
    return reply;
+}
+
+// 客服消息
+function kefu(a,b,c,d){
+    var reply =''
 }
 
 // 连接数据库
@@ -954,5 +1013,181 @@ function findit(arr,attr,val){
     return -1;
 }
 
+
+            // 数据库操作，insert
+            // 建立数据库长链接；
+            var connection = mysql.createConnection({     
+                host     : '39.108.58.83',       
+                user     : 'root',              
+                password : '1234',       
+                port: '3306',                   
+                database: 'TJW', 
+            }); 
+            
+            connection.connect();
+
+            // 添加openid;
+            function insert_openID(openid){
+                var paly = 1;
+
+                var  addSql = 'INSERT INTO dataOfTJW(Id,openId,paly) VALUES(0,?,?)';
+                var  addSqlParams = [openId,play];
+                //增
+                connection.query(addSql,addSqlParams,function (err, result) {
+                        if(err){
+                        console.log('[INSERT ERROR] - ',err.message);
+                        return;
+                        }        
+                    console.log('--------------------------INSERT openid----------------------------');
+                    console.log('INSERT ID:',result);        
+                    console.log('-----------------------------------------------------------------\n\n');  
+                });
+                
+                connection.end();
+
+            }
+            // 添加sex
+            function insert_sex(sex,openId){
+                var modSql = 'UPDATE dataOfTJW SET sex = ? WHERE openId = ?';
+                var modSqlParams = [sex,openId];
+                //改
+                connection.query(modSql,modSqlParams,function (err, result) {
+                if(err){
+                        console.log('[UPDATE ERROR] - ',err.message);
+                        return;
+                }        
+                console.log('--------------------------UPDATE----------------------------');
+                console.log('UPDATE affectedRows',result.affectedRows);
+                console.log('-----------------------------------------------------------------\n\n');
+                });
+                
+                connection.end();
+            }
+             // 添加img
+             function insert_img(openId,imgUrl,imgId){
+                var modSql = 'UPDATE dataOfTJW SET imgUrl = ?,imgId = ? WHERE openId = ?';
+                var modSqlParams = [imgUrl,imgId,openId];
+                //改
+                connection.query(modSql,modSqlParams,function (err, result) {
+                if(err){
+                        console.log('[UPDATE ERROR] - ',err.message);
+                        return;
+                }        
+                console.log('--------------------------UPDATE----------------------------');
+                console.log('UPDATE affectedRows',result.affectedRows);
+                console.log('-----------------------------------------------------------------\n\n');
+                });
+                
+                connection.end();
+            }
+             // 添加voice
+            function insert_voiceId(openId,voiceId){
+                var modSql = 'UPDATE dataOfTJW SET voiceId = ? WHERE openId = ?';
+                var modSqlParams = [openId,voiceId];
+                //改
+                connection.query(modSql,modSqlParams,function (err, result) {
+                if(err){
+                        console.log('[UPDATE ERROR] - ',err.message);
+                        return;
+                }        
+                console.log('--------------------------UPDATE----------------------------');
+                console.log('UPDATE affectedRows',result.affectedRows);
+                console.log('-----------------------------------------------------------------\n\n');
+                });
+                
+                connection.end();
+            } 
+            // 添加第一次留言
+            function insert_msg(openId,msg){
+                var modSql = 'UPDATE dataOfTJW SET msg = ? WHERE openId = ?';
+                var modSqlParams = [openId,msg];
+                //改
+                connection.query(modSql,modSqlParams,function (err, result) {
+                if(err){
+                        console.log('[UPDATE ERROR] - ',err.message);
+                        return;
+                }        
+                console.log('--------------------------UPDATE----------------------------');
+                console.log('UPDATE affectedRows',result.affectedRows);
+                console.log('-----------------------------------------------------------------\n\n');
+                });
+                
+                connection.end();
+            }
+            // 添加第2次留言
+            function insert_msg_nd(openId,msg_nd){
+                var modSql = 'UPDATE dataOfTJW SET msg_nd = ? WHERE openId = ?';
+                var modSqlParams = [openId,msg_nd];
+                //改
+                connection.query(modSql,modSqlParams,function (err, result) {
+                if(err){
+                        console.log('[UPDATE ERROR] - ',err.message);
+                        return;
+                }        
+                console.log('--------------------------UPDATE----------------------------');
+                console.log('UPDATE affectedRows',result.affectedRows);
+                console.log('-----------------------------------------------------------------\n\n');
+                });
+                
+                connection.end();
+            }
+            // 添加判断content
+            function insert_content(openId,content){
+                var modSql = 'UPDATE dataOfTJW SET content = ? WHERE openId = ?';
+                var modSqlParams = [openId,content];
+                //改
+                connection.query(modSql,modSqlParams,function (err, result) {
+                if(err){
+                        console.log('[UPDATE ERROR] - ',err.message);
+                        return;
+                }        
+                console.log('--------------------------UPDATE----------------------------');
+                console.log('UPDATE affectedRows',result.affectedRows);
+                console.log('-----------------------------------------------------------------\n\n');
+                });
+                
+                connection.end();
+            }
+
+            // 提取content
+            function getContentFromDB(){
+                var  sql = 'SELECT content FROM dataOfTJW';
+                //查
+                connection.query(sql,function (err, result) {
+                        if(err){
+                        console.log('[SELECT ERROR] - ',err.message);
+                        return;
+                        }
+                
+                    console.log('--------------------------SELECT----------------------------');
+                    console.log(result);
+                    var a=  JSON.parse(JSON.stringify(result,2))
+                    console.log('------------------------------------------------------------\n\n');  
+                    return a[0].content;
+                });
+                
+                connection.end();
+
+            }
+            // 提取openid用以判断
+            function getOpenIdFromDB(){
+                var  sql = 'SELECT openId FROM dataOfTJW';
+                //查
+                connection.query(sql,function (err, result) {
+                        if(err){
+                        console.log('[SELECT ERROR] - ',err.message);
+                        return;
+                        }
+                
+                    console.log('--------------------------SELECT----------------------------');
+                    console.log(result);
+                    var a=  JSON.parse(JSON.stringify(result,2))
+                    console.log('------------------------------------------------------------\n\n');  
+                    return a[0].openId;
+                });
+                
+                connection.end();
+
+            }
 
 

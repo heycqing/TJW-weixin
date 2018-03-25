@@ -7,11 +7,20 @@ var wechat_file = path.join(__dirname,'./config/wechat_file.txt')
 var config = {
     wechat:{
         appID:'wxc42ff5d3aab3d99a',
-        appSecret:'a62177c29ad651f2bebdb9611197dad4',
+        appSecret:'bcfbd3e30806bf84db6908bfbe30994e',
         token:'TJWweixin',
+        accsee_token_:'',
         // i:0,
         getAccessToken : function(){
             return util.readFileAsync(wechat_file);
+        },
+        saveAccessTokenInConfig: function(data){
+            data = JSON.stringify(data);
+            console.log('存储的data是：'+data)
+            this.accsee_token_ = data.accsee_token;
+            console.log('存储的data/accee_token是：'+this.accsee_token_)
+            
+
         },
         saveAccessToken : function(data){
             data = JSON.stringify(data);
@@ -29,5 +38,5 @@ app.use(
     wechat(config.wechat)
 );
 
-app.listen(2222);
-console.log('正在监8677端口！');
+app.listen(4433);
+console.log('正在监4433端口！');
