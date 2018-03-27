@@ -12,6 +12,7 @@ var wechat_file = path.join(__dirname,'../config/wechat_file.txt')
 // 处理xml;
 var rawBody = require('raw-body');
 var util = require('../lib/util');
+var getFrom = require('./promises')
 
 
 // get请求access_token的连接；
@@ -53,24 +54,6 @@ var api ={
 
 }
 
-// 邂逅;
-var temp_xiehou ='';
-// 性别;
-var temp_sex = '';
-// 图片
-var temp_image = '';
-// 确认1，2
- var temp_sure = '';
-//  确认1，1，2，2
-var temp_sure_nd = '';
-// 上传图片连接
-var temp_imgUrl = '';
-// 语音
-var temp_voice = '';
-// 留言1
-var temp_msgs = '';
-// 保存判断
-var temp_get = '' ;
 
 
 // 字符匹配存储
@@ -95,11 +78,8 @@ Save_imgUrl[4] = 'http://mmbiz.qpic.cn/mmbiz_jpg/icLZmYpBjdOvakHqPbW5yIHZmjQMicU
 
 // 存语音
 var Save_voice = new Array();
-Save_voice[0]='zAfpXnIZWUIxA58YzF33aOpjfUQm1EKCAkSgBSDF70luDEZMU0J3237-hCdV1Aef';
-Save_voice[1]='3vLk9ma2yPOQGQjdwrw5T_HF3lfpYjfzFjOW5cQHke7sjrVevQZyzXL36VDuacIB';
-Save_voice[2]='p75h1seqK-9iQJyxZcPHhmhAj_gQk_IKJJcf3IepB8TNUVCMI94NHxE4TthRWgmw';
-Save_voice[3]='b0-VbTfIrKjcYrCa7rIkWCFMRqnzP80SK4YmjHD8lrb-3zuyD5fhtTU-I6401irp';
-Save_voice[4]='nl_efiBT_uoYsmoRf6xKWkG7YoJ5wssIX_QR95XMLrv8nlusspHiyYulenWl8MZV';
+Save_voice[0]='QszlWuUhFlU6eIutiYXuSzYHcFxAZtoNdaIVNT2TLdKNV8OfnFeSYSh5vd82taid';
+Save_voice[1]='thoNPHpPUWH5rUY4yKJCf5PhuyyS8_3wxGgkxRdfkV2elx7NxglmSxSZ6fJUEQRA';
 
 // 存最后一个留言
 var Save_msg_nd = new Array();
@@ -360,118 +340,105 @@ module.exports = function(opt){
                    encoding:this.charset
                });
 
-               // 转化成json数据
                var content = yield util.parseXMLAsync(data);
 
-
+               // 转化成json数据                
                var msg =  util.formatMsg(content.xml);
                console.log('msg'+msg)
+               console.log('msg.tpye:'+msg.MsgType)
 
+            //    同步操作插入数据库
+            // 判断是否为空，
+            if(!(yield getFrom.getContentFromDB(msg.FromUserName))){
+               yield getFrom.insert_openID(msg.FromUserName);
+                
+            }
+                
+            //    提取openid和play作为判断
+               var gl =yield getFrom.getOpenIdFromDB(msg.FromUserName);
 
+               console.log('\n\n\n'+gl+'\n\n\n');
+
+               var playcount = yield getFrom.getPlayFromDB();
+
+               var n = yield getFrom.getContentFromDB(msg.FromUserName);
+               console.log('\n\n'+n+'\n\n')
 
             // 判断是否是同一个人，并且提取content内容，
-           
-            // 测试测试
-            if( msg.MsgType === 'text' ){
+            if( msg.MsgType === 'text' && gl == msg.FromUserName && playcount === 1){
 
                 var content = msg.Content;
                 console.log('content是:'+content);
+                // 获取数据库中的content数据；
+          
             
-                if(content === '邂逅'){
+                if(content === '邂逅' && (n == null || n == '')){
                     var now = new Date().getTime();
-                    // 全部初始化
-                    temp_sex = '';
-                     // 插入字符
-                     string[api.i] = '';
-                     string[api.i] += content;
-                    console.log('string['+api.i+']是:'+string[api.i]+'\n'+'i是：'+api.i);
-                 
                     this.status = 200;
                     this.type = 'application/xml';
-
                     var back = '欢迎来到【邂逅实验室】，希望你能在这里邂逅到有趣的灵魂。'+'\n'+
                                 '首先请你做一个关乎终身大事的选择：'+'\n'+
                                 '我是男生，想邂逅男生，请回复A；'+'\n'+
                                 '我是男生，想邂逅女生，请回复B；'+'\n'+
                                 '我是女生，想邂逅男生，请回复C；'+'\n'+
                                 '我是女生，想邂逅女生，请回复D。';
-                    
-
-                    this.body = xmlToreply(msg.FromUserName,msg.ToUserName,now,back)                        
-                    
-                    
-                }else if(string[api.i].match('邂逅') != null && (content === 'A' || content === 'a')&& temp_sex ===''&& string[api.i].indexOf(1) === -1){
-                 var sex = content.toUpperCase();
-                 temp_sex = content;
-                 //    添加sex;
-
-                 string[api.i] +=sex;
-                 console.log(string[api.i])
-
-
-
+                    this.body = xmlToreply(msg.FromUserName,msg.ToUserName,now,back);
+                                
+                    yield getFrom.insert_content(msg.FromUserName,content)                      
+                                
+                    return this.body;
+                      
+                }else if(n.match('邂逅') != null && (content === 'A' || content === 'a')&& n.length==2 && n.indexOf(1) === -1){
+                    var sex = content.toUpperCase();
+                    n+=sex;
+                    yield getFrom.insert_sex(sex,msg.FromUserName)
                     var now = new Date().getTime();
                     this.status = 200;
                     this.type = 'application/xml';
                     var back ='你是男生，想邂逅男生，确认请回复1，重新选择请回复2，5分钟不回复就当做你确认了哦!';                        
-                    this.body = xmlToreply(msg.FromUserName,msg.ToUserName,now,back)                       
+                    this.body = xmlToreply(msg.FromUserName,msg.ToUserName,now,back) 
+                    yield getFrom.insert_content(msg.FromUserName,n)                      
 
-                }else if(string[api.i].match('邂逅') != null && (content === 'B' || content === 'b')&& temp_sex ===''&& string[api.i].indexOf(1) === -1){
-                 var sex = content.toUpperCase();
-                 temp_sex = content;
-                 
-                 //    添加sex;
-                 string[api.i] +=sex;
-                 console.log(string[api.i])
-                    
+                }else if(n.match('邂逅') != null && (content === 'B' || content === 'b')&& n.length==2 && n.indexOf(1) === -1){
+                    var sex = content.toUpperCase();
+                    n+=sex;
+                    yield getFrom.insert_sex(sex,msg.FromUserName)                    
                     var now = new Date().getTime();
                     this.status = 200;
                     this.type = 'application/xml';
                     var back ='你是男生，想邂逅女生，确认请回复1，重新选择请回复2，5分钟不回复就当做你确认了哦!';
-                    this.body = xmlToreply(msg.FromUserName,msg.ToUserName,now,back)                        
-                    
-                    
-                }else if(string[api.i].match('邂逅') != null && (content === 'C' || content === 'c')&& temp_sex ==='' && string[api.i].indexOf(1) === -1){
+                    this.body = xmlToreply(msg.FromUserName,msg.ToUserName,now,back)     
+                    yield getFrom.insert_content(msg.FromUserName,n)                      
+
+                }else if(n.match('邂逅') != null && (content === 'C' || content === 'c')&& n.length==2 && n.indexOf(1) === -1){
                      var sex = content.toUpperCase();
-                 temp_sex = content;
-                     
-                    //    添加sex;
-                    string[api.i] +=sex;
-                    console.log(string[api.i])
-                    
+                    yield getFrom.insert_sex(sex,msg.FromUserName)
+                    n+=sex;                    
                     var now = new Date().getTime();
                     this.status = 200;
                     this.type = 'application/xml';
                     var back ='你是女生，想邂逅男生，确认请回复1，重新选择请回复2，5分钟不回复就当做你确认了哦!';                        
-                    this.body = xmlToreply(msg.FromUserName,msg.ToUserName,now,back)                        
-                    
-                    
-                }else if(string[api.i].match('邂逅') != null && (content === 'D' || content === 'd') && temp_sex ==''&& string[api.i].indexOf(1) === -1){
+                    this.body = xmlToreply(msg.FromUserName,msg.ToUserName,now,back);
+                    yield getFrom.insert_content(msg.FromUserName,n)                                       
+                }else if(n.match('邂逅') != null && (content === 'D' || content === 'd') && n.length==2 && n.indexOf(1) === -1){
                      var sex = content.toUpperCase();
-                 temp_sex = content;
-                     
-                     //    添加sex;
-                     string[api.i] +=sex;
-                    console.log(string[api.i])
-                    
+                     n+=sex;
+                    yield getFrom.insert_sex(sex,msg.FromUserName)                     
                     var now = new Date().getTime();
                     this.status = 200;
                     this.type = 'application/xml';
                     var back ='你是女生，想邂逅女生，确认请回复1，重新选择请回复2，5分钟不回复就当做你确认了哦!';                        
-                    this.body = xmlToreply(msg.FromUserName,msg.ToUserName,now,back)                        
-                    
-                    
+                    this.body = xmlToreply(msg.FromUserName,msg.ToUserName,now,back);
+                    yield getFrom.insert_content(msg.FromUserName,n)                                         
                 }
                 // 确认
-                else if((string[api.i].indexOf('邂逅A') === 0 || string[api.i].indexOf('邂逅B') === 0 ||string[api.i].indexOf('邂逅C') === 0 || string[api.i].indexOf('邂逅D') === 0) && string[api.i].indexOf('image') === -1 &&content ==='1'){
+                else if((n.indexOf('邂逅A') === 0 || n.indexOf('邂逅B') === 0 ||n.indexOf('邂逅C') === 0 || n.indexOf('邂逅D') === 0) && n.indexOf('image') === -1 &&content ==='1'){
                     var now = new Date().getTime(); 
-                 //    temp_sure =content;  
-                     string[api.i] += content;
-                     while(string[api.i].length >4 ){
-                         string[api.i] =string[api.i].substring(0,string[api.i].length-1)
+                     n += content;
+                     while(n.length >4 ){
+                         n =n.substring(0,n.length-1)
                      }
-                     console.log(string[api.i])
-
+                     console.log(n)
                     this.status = 200;
                     this.type = 'application/xml';
                     var back = '恭喜你成功加入今天的【邂逅实验室】！'+'\n'+
@@ -480,17 +447,13 @@ module.exports = function(opt){
                     '我们将用这张照片作为媒介，让你们进行一轮初步交流，'+'\n'+
                     '所以一定要翻遍相册找张你非常满意的照片噢！'+'\n'+
                     '温馨提示：只有一次上传照片的机会，一旦传错将无法修改。'
-
-
-                    
-
-                    this.body = xmlToreply(msg.FromUserName,msg.ToUserName,now,back)   
+                    this.body = xmlToreply(msg.FromUserName,msg.ToUserName,now,back)  
+                    yield getFrom.insert_content(msg.FromUserName,n)                      
+                     
                 }
                 // 重新选择；
-                else if((string[api.i].indexOf('邂逅A') === 0 || string[api.i].indexOf('邂逅B') === 0 ||string[api.i].indexOf('邂逅C') === 0 || string[api.i].indexOf('邂逅D') === 0)&&content === '2' && string[api.i].indexOf('image') === -1 &&string[api.i].length ===3){
-                    temp_sex = '';
-                    string[api.i] = '邂逅'
-
+                else if((n.indexOf('邂逅A') === 0 || n.indexOf('邂逅B') === 0 ||n.indexOf('邂逅C') === 0 || n.indexOf('邂逅D') === 0)&&content === '2' && n.indexOf('image') === -1 &&n.length ===3){
+                    n = '邂逅'
                     var now = new Date().getTime();                        
                     this.status = 200;
                     this.type = 'application/xml';
@@ -500,21 +463,20 @@ module.exports = function(opt){
                     '我是女生，想邂逅男生，请回复C；'+'\n'+
                     '我是女生，想邂逅女生，请回复D。';
 
-                    this.body = xmlToreply(msg.FromUserName,msg.ToUserName,now,back)         
-
+                    this.body = xmlToreply(msg.FromUserName,msg.ToUserName,now,back) ;
+                    yield getFrom.insert_content(msg.FromUserName,n);                      
+                            
                 }
                  //    上传完图片后，确认1
-                else if((string[api.i].indexOf('邂逅A1image') === 0 || string[api.i].indexOf('邂逅B1image') === 0 ||string[api.i].indexOf('邂逅C1image') === 0 || string[api.i].indexOf('邂逅D1image') === 0)&& content ==='1'&& string[api.i].indexOf('2') === -1){
+                else if((n.indexOf('邂逅A1image') === 0 || n.indexOf('邂逅B1image') === 0 ||n.indexOf('邂逅C1image') === 0 || n.indexOf('邂逅D1image') === 0)&& content ==='1'&& n.indexOf('2') === -1){
+                    n += content;
+                    while(n.length >10 ){
+                        n =n.substring(0,n.length-1)
+                    }
 
-                     // var temp_sure_nd = content;
-                     string[api.i] += content;
-                     while(string[api.i].length >10 ){
-                         string[api.i] =string[api.i].substring(0,string[api.i].length-1)
-                     }
-
-                     var now = new Date().getTime();                        
-                     this.status = 200;
-                     this.type = 'application/xml';
+                    var now = new Date().getTime();                        
+                    this.status = 200;
+                    this.type = 'application/xml';
                     var back = '恭喜你们成为邂逅实验室第XX对有缘人，对方也希望跟你认识，'+'\n'+
                     '接下来请你们各自按照以下格式回复做一个自我介绍吧，当然对方也会向你介绍自己。'+'\n'+
                     '1.该怎么称呼你？'+'\n'+
@@ -522,18 +484,17 @@ module.exports = function(opt){
                     '3.一般怎么安排自己的周末？'+'\n'+
                     '4.最喜欢的一首歌？'+'\n'+
                     '5.最向往的城市？'
-                    this.body = xmlToreply(msg.FromUserName,msg.ToUserName,now,back)   
-                    
-              
+                    this.body = xmlToreply(msg.FromUserName,msg.ToUserName,now,back);
+                    yield getFrom.insert_content(msg.FromUserName,n);                      
                 }
                  //上传完图片，重新选择2
-                 else if((string[api.i].indexOf('邂逅A1image') === 0 || string[api.i].indexOf('邂逅B1image') === 0 ||string[api.i].indexOf('邂逅C1image') === 0 || string[api.i].indexOf('邂逅D1image') === 0)&& content ==='2' && string[api.i].indexOf('text') === -1 &&string[api.i].length === 9){
+                 else if((n.indexOf('邂逅A1image') === 0 || n.indexOf('邂逅B1image') === 0 ||n.indexOf('邂逅C1image') === 0 || n.indexOf('邂逅D1image') === 0)&& content ==='2' && n.indexOf('text') === -1 &&n.length === 9){
 
-                     string[api.i] += content;
-                     while(string[api.i].length >10 ){
-                         string[api.i] =string[api.i].substring(0,string[api.i].length-1)
+                     n += content;
+                     while(n.length >10 ){
+                         n =n.substring(0,n.length-1)
                      }
-                     console.log('string\n\n'+string[api.i])
+                     console.log('string\n\n'+n)
                      var now = new Date().getTime();                        
                      this.status = 200;
                      this.type = 'application/xml';
@@ -543,29 +504,34 @@ module.exports = function(opt){
                      '重新考虑请回复：2'+'\n';
 
                     this.body = xmlToreply(msg.FromUserName,msg.ToUserName,now,back)   
+                    yield getFrom.insert_content(msg.FromUserName,n);                      
+                    
                      
                  } 
                  //  重新选择2，1的分支
-                 else if((string[api.i].indexOf('邂逅A1image2') === 0 || string[api.i].indexOf('邂逅B1image2') === 0 ||string[api.i].indexOf('邂逅C1image2') === 0 || string[api.i].indexOf('邂逅D1image2') === 0) && string[api.i].indexOf('text') === -1 && content === '1' && string[api.i].length === 10){
+                 else if((n.indexOf('邂逅A1image2') === 0 || n.indexOf('邂逅B1image2') === 0 ||n.indexOf('邂逅C1image2') === 0 || n.indexOf('邂逅D1image2') === 0) && n.indexOf('text') === -1 && content === '1' && n.length === 10){
 
                      
                     var back ='好吧，真的很遗憾呢，那我们今天就先到这了，欢迎明天再来！'
-                    string[api.i] = '';
+                    n = '';
                     var now = new Date().getTime();                        
                     this.status = 200;
                     this.type = 'application/xml';
                     this.body = xmlToreply(msg.FromUserName,msg.ToUserName,now,back); 
+                    yield getFrom.zore_play(msg.FromUserName);
+                    yield getFrom.insert_content(msg.FromUserName,n);                      
+                    
                      
 
                  }   
                  //  重新选择2，2的分支
-                 else if((string[api.i].indexOf('邂逅A1image2') === 0 || string[api.i].indexOf('邂逅B1image2') === 0 ||string[api.i].indexOf('邂逅C1image2') === 0 || string[api.i].indexOf('邂逅D1image2') === 0) && string[api.i].indexOf('text') === -1 && string[api.i].indexOf('image1') === -1 && content === '2' && string[api.i].length === 10){
+                 else if((n.indexOf('邂逅A1image2') === 0 || n.indexOf('邂逅B1image2') === 0 ||n.indexOf('邂逅C1image2') === 0 || n.indexOf('邂逅D1image2') === 0) && n.indexOf('text') === -1 && n.indexOf('image1') === -1 && content === '2' && n.length === 10){
 
-                    string[api.i] += content;
-                     while(string[api.i].length >11 ){
-                         string[api.i] =string[api.i].substring(0,string[api.i].length-1)
+                    n += content;
+                     while(n.length >11 ){
+                         n =n.substring(0,n.length-1)
                      }
-                     console.log("\nstring\n"+string[api.i])
+                     console.log("\nstring\n"+n)
                      var back ='请重新选择'+'\n'+
                      '继续聊 请回复“1”，'+'\n'+
                      '没兴趣 请回复“2”。'+'\n';
@@ -573,30 +539,34 @@ module.exports = function(opt){
                      this.status = 200;
                      this.type = 'application/xml';
                     this.body = xmlToreply(msg.FromUserName,msg.ToUserName,now,back); 
+                    yield getFrom.insert_content(msg.FromUserName,n);                      
+                    
                      
                  }
                  // 重新选择2，2，1的分支；
-                 else if( (string[api.i].indexOf('邂逅A1image22') === 0 || string[api.i].indexOf('邂逅B1image22') === 0 || string[api.i].indexOf('邂逅C1image22') === 0 || string[api.i].indexOf('邂逅D1image22') === 0)  && content === '1' && string[api.i].indexOf('text') === -1){
+                 else if( (n.indexOf('邂逅A1image22') === 0 || n.indexOf('邂逅B1image22') === 0 || n.indexOf('邂逅C1image22') === 0 || n.indexOf('邂逅D1image22') === 0)  && content === '1' && n.indexOf('text') === -1){
                      
                      
-                     string[api.i] = '邂逅A1image1';
+                     n = '邂逅A1image1';
 
                      var now = new Date().getTime();                        
                      this.status = 200;
                      this.type = 'application/xml';
-                    var back = '恭喜你们成为邂逅实验室第XX对有缘人，对方也希望跟你认识，'+'\n'+
+                    var back = '恭喜你们成为邂逅实验室第 '+' undefiend'+'对有缘人，对方也希望跟你认识，'+'\n'+
                     '接下来请你们各自按照以下格式回复做一个自我介绍吧，当然对方也会向你介绍自己。'+'\n'+
                     '1.该怎么称呼你？'+'\n'+
                     '2.你是北师、北理、UIC的学生或是其他身份？'+'\n'+
                     '3.一般怎么安排自己的周末？'+'\n'+
                     '4.最喜欢的一首歌？'+'\n'+
                     '5.最向往的城市？'
-                    this.body = xmlToreply(msg.FromUserName,msg.ToUserName,now,back)  
+                    this.body = xmlToreply(msg.FromUserName,msg.ToUserName,now,back)  ;
+                    yield getFrom.insert_content(msg.FromUserName,n);                      
+                    
 
                  }
                  // 重新选择2，2，2的分支；
-                 else if((string[api.i].indexOf('邂逅A1image22') === 0 || string[api.i].indexOf('邂逅B1image22') === 0 || string[api.i].indexOf('邂逅C1image22') === 0 || string[api.i].indexOf('邂逅D1image22') === 0)  && content === '2' && string[api.i].indexOf('text') === -1){
-                     string[api.i] = '邂逅A1image2';
+                 else if((n.indexOf('邂逅A1image22') === 0 || n.indexOf('邂逅B1image22') === 0 || n.indexOf('邂逅C1image22') === 0 || n.indexOf('邂逅D1image22') === 0)  && content === '2' && n.indexOf('text') === -1){
+                     n = '邂逅A1image2';
                      var now = new Date().getTime();                        
                      this.status = 200;
                      this.type = 'application/xml';
@@ -605,44 +575,30 @@ module.exports = function(opt){
                      '不愿邂逅请回复：1'+'\n'+
                      '重新考虑请回复：2'+'\n';
 
-                    this.body = xmlToreply(msg.FromUserName,msg.ToUserName,now,back)  
+                    this.body = xmlToreply(msg.FromUserName,msg.ToUserName,now,back)  ;
+                    yield getFrom.insert_content(msg.FromUserName,n);                      
+                    
 
                  }
                  
                  
                  // 存储留言1；
-                else if((string[api.i].indexOf('邂逅A1image1') === 0 || string[api.i].indexOf('邂逅B1image1') === 0 ||string[api.i].indexOf('邂逅C1image1') === 0 || string[api.i].indexOf('邂逅D1image1') === 0) && string[api.i].indexOf('voice') === -1 && content != ''){
+                else if((n.indexOf('邂逅A1image1') === 0 || n.indexOf('邂逅B1image1') === 0 ||n.indexOf('邂逅C1image1') === 0 || n.indexOf('邂逅D1image1') === 0) && n.indexOf('voice') === -1 && content != ''){
                      // 存储留言   
                      // temp_msgs = content;
-                     string[api.i] += msg.MsgType;
-                     while(string[api.i].length >14 ){
-                         string[api.i] = string[api.i].substring(0,string[api.i].length-1)
+                     n += msg.MsgType;
+                     while(n.length >14 ){
+                         n = n.substring(0,n.length-1)
                      }
 
                      var SaveCon = content;
                      console.log(Save_msgs);
-                     // var modSql = 'UPDATE TJWdata SET msgs = ? WHERE imgUrl = ?';
-                     // var modSqlParams = [SaveCon, temp_imgUrl];
-                     // //改
-                     // connection.query(modSql,modSqlParams,function (err, result) {
-                     // if(err){
-                     //         console.log('[UPDATE ERROR] - ',err.message);
-                     //         return;
-                     // }        
-                     // console.log('--------------------------UPDATE----------------------------');
-                     // console.log('UPDATE affectedRows',result.affectedRows);
-                     // console.log('-----------------------------------------------------------------\n\n');
-                     // });
-                 // 结束
-                 // 发送其他留言,必须要匹配到同一张图片的人；
+                    yield getFrom.insert_msg(msg.FromUserName,msg.Content)
+                    // 发送其他留言,必须要匹配到同一张图片的人；
                      var a = Math.floor(Math.random()*Save_msgs.length);
                      
                        
                      var back_msg = Save_msgs[a];
-                 
-                         
-                     
-
                      this.status = 200;
                      this.type = 'application/xml';
                      var back ='\n\n'+'【'+'\n'+back_msg+'\n'+'】'+'\n\n\n'+'这是对方的回复，你们先得有个大致了解才能聊下去吧，祝你们聊的愉快！'+'\n\n'+'接下来请你发送一条展示自己的语音来吸引Ta，'+'\n'+
@@ -654,42 +610,58 @@ module.exports = function(opt){
                      Save_msgs.push(SaveCon);
                                    
                      this.body = xmlToreply(msg.FromUserName,msg.ToUserName,now,back) ;
+                    yield getFrom.insert_content(msg.FromUserName,n);                      
+                     
 
-                }else if( (string[api.i].indexOf('邂逅A1image1text') === 0 || string[api.i].indexOf('邂逅B1image1text') === 0 ||string[api.i].indexOf('邂逅C1image1text') === 0 || string[api.i].indexOf('邂逅D1image1text') === 0) && string[api.i].indexOf('voice') === 14  &&  content != ''){
+                }else if( (n.indexOf('邂逅A1image1text') === 0 || n.indexOf('邂逅B1image1text') === 0 ||n.indexOf('邂逅C1image1text') === 0 || n.indexOf('邂逅D1image1text') === 0) && n.indexOf('voice') === 14  &&  content != ''){
                      var a = Math.floor(Math.random()*Save_msgs.length);
                    
-                         var back_msg = Save_msg_nd[a];
-                     
+                    var back_msg = Save_msg_nd[a];
+                    yield getFrom.insert_msg_nd(msg.FromUserName,msg.Content)
                      this.status = 200;
                      this.type = 'application/xml';
                      var back ='你的留言我们已经转达了，'+'\n'+
                      '如果还没有收到对方的留言，'+'\n'+
                      '那可能是堵在路上了，请稍等。'+'\n\n\n'+'【'+back_msg+'】'+'\n\n\n';
                      Save_msg_nd.push(content);
-                     
-                     temp = string[api.i]
-                     // 所有设定重置
-                     string[api.i] = '';
+                    n += msg.MsgType;
                      
                      this.body = xmlToreply(msg.FromUserName,msg.ToUserName,now,back);
+                    yield getFrom.insert_content(msg.FromUserName,n);                      
+                     
 
                 }
                 // 留下联系方式
-                // else if(temp.match('邂逅A1image1textvoicetext') !== null || temp.match('邂逅B1image1textvoicetext') !== null || temp.match('邂逅C1image1textvoicetext') !== null || temp.match('邂逅D1image1textvoicetext') !== null){
-                //     var back =  '好了，今天【邂逅实验室】的线上之旅就到此结束了。'+'\n'+
-                //                 '哦，对了，为了纪念这场实验，也为了更加完整的体现这场邂逅，'+'\n'+
-                //                 '我们准备了名额有限的一部分线下邂逅机会，'+'\n'+
-                //                 '在我们精心挑选的时间和场地（此处待定）。 '+'\n'+
-                //                 '如果你希望以这样的方式圆满完成这次邂逅，'+'\n'+
-                //                 '请留下  【 姓名+手机号码 】   以便我们联系你，'+'\n'+
-                //                 '双方均填入准确信息即为成功报名，任何一方放弃填写均不生效。';
-                //     this.status = 200;
-                //     this.type = 'application/xml';
-                //     var now = new Date().getTime();
-                //     s
-                //     this.body = xmlToreply(msg.FromUserName,msg.ToUserName,now,back);
+                else if(n.match('邂逅A1image1textvoicetext') !== null || n.match('邂逅B1image1textvoicetext') !== null || n.match('邂逅C1image1textvoicetext') !== null || n.match('邂逅D1image1textvoicetext') !== null && content != ''){
+                    var back =  '好了，今天【邂逅实验室】的线上之旅就到此结束了。'+'\n'+
+                                '哦，对了，为了纪念这场实验，也为了更加完整的体现这场邂逅，'+'\n'+
+                                '我们准备了名额有限的一部分线下邂逅机会，'+'\n'+
+                                '在我们精心挑选的时间和场地（此处待定）。 '+'\n'+
+                                '如果你希望以这样的方式圆满完成这次邂逅，'+'\n'+
+                                '请留下  【 姓名+手机号码 】   以便我们联系你，'+'\n'+
+                                '双方均填入准确信息即为成功报名，任何一方放弃填写均不生效。';
+                    this.status = 200;
+                    this.type = 'application/xml';
+                    n += 'phone';
+                    var now = new Date().getTime();
+                    yield getfrom.insert_contact(content,msg.FromUserName);
+                    this.body = xmlToreply(msg.FromUserName,msg.ToUserName,now,back);
+                    yield getFrom.insert_content(msg.FromUserName,n);                      
                     
-                // }
+                    
+                }
+                else if(n.match('邂逅A1image1textvoicetextphone') !== null || n.match('邂逅B1image1textvoicetextphone') !== null || n.match('邂逅C1image1textvoicetextphone') !== null || n.match('邂逅D1image1textvoicetextphone') !== null && content != ''){
+                    var back= '很遗憾，对方未能及时填写报名信息，今天的部分就到此结束了，欢迎明天再来!';
+                    this.status = 200;
+                    this.type = 'application/xml';
+                    var now = new Date().getTime();
+                    n='';
+                    yield getfrom.insert_contact(content,msg.FromUserName);
+                    this.body = xmlToreply(msg.FromUserName,msg.ToUserName,now,back);
+                    yield getFrom.insert_content(msg.FromUserName,n);   
+                    yield getFrom.ore_play(msg.FromUserName);   
+
+                }
             
                 else{
 
@@ -697,7 +669,6 @@ module.exports = function(opt){
                     this.status = 200;
                     this.type = 'application/xml';
                     var back = '请重新开始 【 邂逅 】';
-                    string[api.i] = '';
                     this.body = xmlToreply(msg.FromUserName,msg.ToUserName,now,back);
                     console.log("that.body:"+this.body);
 
@@ -706,106 +677,49 @@ module.exports = function(opt){
                     
             }
                  //    图片
-            else if(msg.MsgType === 'image' && (string[api.i].indexOf('邂逅A1') === 0 || string[api.i].indexOf('邂逅B1') === 0 ||string[api.i].indexOf('邂逅C1') === 0 || string[api.i].indexOf('邂逅D1') === 0) ){
-                     var now = new Date().getTime()
-                     
-                     //    temp_image = msg.MsgType;
-                     //    temp_imgUrl = msg.PicUrl;
-                     //    temp_sure ='';                       
+            else if(msg.MsgType === 'image' && (n.indexOf('邂逅A1') === 0 || n.indexOf('邂逅B1') === 0 ||n.indexOf('邂逅C1') === 0 || n.indexOf('邂逅D1') === 0) ){
+                     var now = new Date().getTime()                   
                          
-                         string[api.i] += msg.MsgType;
-                         console.log('图片：'+string[api.i])
-                         while(string[api.i].length >9 ){
-                             string[api.i] =string[api.i].substring(0,string[api.i].length-1)
+                         n += msg.MsgType;
+                         console.log('图片：'+n)
+                         while(n.length >9 ){
+                             n =n.substring(0,n.length-1)
                          }
                          
 
-                     this.status = 200;
-                     this.type = 'application/xml';
-                     var that =this;
-                         // 连接数据库
-                     var connection = mysql.createConnection({     
-                         host: '39.108.58.83',
-                         user: 'root',
-                         password: '1234',
-                         port: '3306',
-                         database: 'TJW',
-                         }); 
-                     
-                         connection.connect();
-                         var  addSql = 'INSERT INTO TJWdata(sex,imgUrl,imgId,voiceId) VALUES(?,?,?,?)';
-                         var  addSqlParams = [temp_sex,msg.PicUrl,msg.MediaId,''];
-                         //增
-                         connection.query(addSql,addSqlParams,function (err, result) {
-                                 if(err){
-                                 console.log('[INSERT ERROR] - ',err.message);
-                                 return;
-                                 }        
-                         
-                             console.log('--------------------------INSERT----------------------------');
-                             //console.log('INSERT ID:',result.insertId);        
-                             console.log('INSERT ID:',result);        
-                             console.log('-----------------------------------------------------------------\n\n');  
-                         });
-                     connection.end();
-                         // 结束
-
+                    this.status = 200;
+                    this.type = 'application/xml';
+                    yield getFrom.insert_img(msg.FromUserName,msg.PicUrl,msg.MediaId);
                          // 发送图文信息；
-                     this.body = tuWen(msg.FromUserName,msg.ToUserName,msg.PicUrl);
+                    this.body = tuWen(msg.FromUserName,msg.ToUserName,msg.PicUrl);
+                    yield getFrom.insert_content(msg.FromUserName,n);                      
                      
                      
 
              }
          
-                 else if(msg.MsgType === 'voice' && (string[api.i].indexOf('邂逅A1image1text') === 0 || string[api.i].indexOf('邂逅B1image1text') === 0 ||string[api.i].indexOf('邂逅C1image1text') === 0 || string[api.i].indexOf('邂逅D1image1text') === 0)){
+                 else if(msg.MsgType === 'voice' && (n.indexOf('邂逅A1image1text') === 0 || n.indexOf('邂逅B1image1text') === 0 ||n.indexOf('邂逅C1image1text') === 0 || n.indexOf('邂逅D1image1text') === 0)){
 
                      var now = new Date().getTime()
                      this.status = 200;
                      this.type = 'application/xml';
 
-                     string[api.i] += msg.MsgType;
-                     while(string[api.i].length >19 ){
-                         string[api.i] =string[api.i].substring(0,string[api.i].length-1)
+                     n += msg.MsgType;
+                     while(n.length >19 ){
+                         n =n.substring(0,n.length-1)
                      }
                      console.log('语音:'+string)
-                     
-                     temp_voice = msg.MediaId;
-
+                     yield getFrom.insert_voiceId(msg.FromUserName,msg.MediaId);
                      var voiceID = msg.MediaId;
                          Save_voice.push(voiceID);
                      // 更新数据
-                         // 新增时间和数据库语句
-                         var connection = mysql.createConnection({     
-                         host: '39.108.58.83',
-                         user: 'root',
-                         password: '1234',
-                         port: '3306',
-                         database: 'TJW',
-                     }); 
-                         
-                         connection.connect();
-
-                         var modSql = 'UPDATE TJWdata SET voiceId = ? WHERE imgUrl = ?';
-                         var modSqlParams = [voiceID, temp_imgUrl];
-                         //改
-                         connection.query(modSql,modSqlParams,function (err, result) {
-                         if(err){
-                                 console.log('[UPDATE ERROR] - ',err.message);
-                                 return;
-                         }        
-                         console.log('--------------------------UPDATE----------------------------');
-                         console.log('UPDATE affectedRows',result.affectedRows);
-                         console.log('-----------------------------------------------------------------\n\n');
-                         });
-
                              // 发送语言，需要匹配到相关图片；
-                             // 发送语音没调试？？
-                                     var a = Math.floor(Math.random()*Save_voice.length);
+                    var a = Math.floor(Math.random()*Save_voice.length);
                                                  
                                                  
-                                     var back_msg = Save_voice[a];
+                    var back_msg = Save_voice[a];
 
-                                 var back ='听到Ta对你说的话了吗？'+'\n'+
+                    var back ='听到Ta对你说的话了吗？'+'\n'+
                              '相信聊到这里你们都已经有了简单的了解，'+'\n'+
                              '赘述太多，或许反而会让这件事变得不那么浪漫，'+'\n'+
                              '最后一次机会，抓紧时间给Ta留下一段想说的文字吧！'+'\n'+
@@ -813,11 +727,11 @@ module.exports = function(opt){
                              '温馨提示：留言一旦发出将无法修改。'
                          
 
-                             //    this.body = xmlToreply(msg.FromUserName,msg.ToUserName,now,back);
-                             this.body = voicetype(msg.FromUserName,msg.ToUserName,now,back_msg)
-                             //    temp_voice ='';
-
-                 }else{
+                    this.body = voicetype(msg.FromUserName,msg.ToUserName,now,back_msg)
+                    yield getFrom.insert_content(msg.FromUserName,n);                      
+                     
+                 }
+                 else{
                      var now = new Date().getTime();
                      this.status = 200;
                      this.type = 'application/xml';
@@ -917,10 +831,6 @@ function tuWen(a,b,c,d){
                             var back_msg = Save_imgUrl[ac];
                             
                         }
-                            // var back_msg = Save_imgUrl[ac];
-                        
-                        
-    // var d ='http://mmbiz.qpic.cn/mmbiz_jpg/d1C27ickcbib2mK9VKxBBmtGJkauspaEiaDC9uRrciaBW3ZGdS2T0o6W3GLHQVibk69Fbh5apzMvDAsI5Nwiar5LxntQ/0';
     var reply = '<xml><ToUserName>'+a+'</ToUserName><FromUserName>'+b+'</FromUserName><CreateTime>'+c+'</CreateTime><MsgType>news</MsgType><ArticleCount>1</ArticleCount>'+'<Articles><item><Title>邂逅实验室(点击可看)</Title> <Description>你的照片已经成功提交到【邂逅实验室】啦，'+'\n'+
     '这是我给你找的邂逅对象（只有这一个哦）先看看Ta精心挑选的照片，'+'\n'+
     '然后决定是否与Ta进一步沟通，慎重考虑噢，或许这是你们唯一一次认识对方的机会。'+'\n'+
@@ -933,11 +843,6 @@ function tuWen(a,b,c,d){
 function voicetype(a,b,c,d){
    var reply = '<xml><ToUserName>'+a+'</ToUserName><FromUserName>'+b+'</FromUserName><CreateTime>'+c+'</CreateTime><MsgType>voice</MsgType><Voice><MediaId>'+d+'</MediaId></Voice></xml>';
    return reply;
-}
-
-// 客服消息
-function kefu(a,b,c,d){
-    var reply =''
 }
 
 // 连接数据库
@@ -1002,192 +907,4 @@ function date2str(x, y) {
         return ((v.length > 1 ? "0" : "") + eval('z.' + v.slice(-1))).slice(-(v.length > 2 ? v.length : 2))
     });
 }
-
-//  遍历对象数组，查找
-function findit(arr,attr,val){
-    for (var i=0;i<arr.length;i++){
-        if(arr[i][attr] == val){
-            return i;
-        }
-    }
-    return -1;
-}
-
-
-            // 数据库操作，insert
-            // 建立数据库长链接；
-            var connection = mysql.createConnection({     
-                host     : '39.108.58.83',       
-                user     : 'root',              
-                password : '1234',       
-                port: '3306',                   
-                database: 'TJW', 
-            }); 
-            
-            connection.connect();
-
-            // 添加openid;
-            function insert_openID(openid){
-                var paly = 1;
-
-                var  addSql = 'INSERT INTO dataOfTJW(Id,openId,paly) VALUES(0,?,?)';
-                var  addSqlParams = [openId,play];
-                //增
-                connection.query(addSql,addSqlParams,function (err, result) {
-                        if(err){
-                        console.log('[INSERT ERROR] - ',err.message);
-                        return;
-                        }        
-                    console.log('--------------------------INSERT openid----------------------------');
-                    console.log('INSERT ID:',result);        
-                    console.log('-----------------------------------------------------------------\n\n');  
-                });
-                
-                connection.end();
-
-            }
-            // 添加sex
-            function insert_sex(sex,openId){
-                var modSql = 'UPDATE dataOfTJW SET sex = ? WHERE openId = ?';
-                var modSqlParams = [sex,openId];
-                //改
-                connection.query(modSql,modSqlParams,function (err, result) {
-                if(err){
-                        console.log('[UPDATE ERROR] - ',err.message);
-                        return;
-                }        
-                console.log('--------------------------UPDATE----------------------------');
-                console.log('UPDATE affectedRows',result.affectedRows);
-                console.log('-----------------------------------------------------------------\n\n');
-                });
-                
-                connection.end();
-            }
-             // 添加img
-             function insert_img(openId,imgUrl,imgId){
-                var modSql = 'UPDATE dataOfTJW SET imgUrl = ?,imgId = ? WHERE openId = ?';
-                var modSqlParams = [imgUrl,imgId,openId];
-                //改
-                connection.query(modSql,modSqlParams,function (err, result) {
-                if(err){
-                        console.log('[UPDATE ERROR] - ',err.message);
-                        return;
-                }        
-                console.log('--------------------------UPDATE----------------------------');
-                console.log('UPDATE affectedRows',result.affectedRows);
-                console.log('-----------------------------------------------------------------\n\n');
-                });
-                
-                connection.end();
-            }
-             // 添加voice
-            function insert_voiceId(openId,voiceId){
-                var modSql = 'UPDATE dataOfTJW SET voiceId = ? WHERE openId = ?';
-                var modSqlParams = [openId,voiceId];
-                //改
-                connection.query(modSql,modSqlParams,function (err, result) {
-                if(err){
-                        console.log('[UPDATE ERROR] - ',err.message);
-                        return;
-                }        
-                console.log('--------------------------UPDATE----------------------------');
-                console.log('UPDATE affectedRows',result.affectedRows);
-                console.log('-----------------------------------------------------------------\n\n');
-                });
-                
-                connection.end();
-            } 
-            // 添加第一次留言
-            function insert_msg(openId,msg){
-                var modSql = 'UPDATE dataOfTJW SET msg = ? WHERE openId = ?';
-                var modSqlParams = [openId,msg];
-                //改
-                connection.query(modSql,modSqlParams,function (err, result) {
-                if(err){
-                        console.log('[UPDATE ERROR] - ',err.message);
-                        return;
-                }        
-                console.log('--------------------------UPDATE----------------------------');
-                console.log('UPDATE affectedRows',result.affectedRows);
-                console.log('-----------------------------------------------------------------\n\n');
-                });
-                
-                connection.end();
-            }
-            // 添加第2次留言
-            function insert_msg_nd(openId,msg_nd){
-                var modSql = 'UPDATE dataOfTJW SET msg_nd = ? WHERE openId = ?';
-                var modSqlParams = [openId,msg_nd];
-                //改
-                connection.query(modSql,modSqlParams,function (err, result) {
-                if(err){
-                        console.log('[UPDATE ERROR] - ',err.message);
-                        return;
-                }        
-                console.log('--------------------------UPDATE----------------------------');
-                console.log('UPDATE affectedRows',result.affectedRows);
-                console.log('-----------------------------------------------------------------\n\n');
-                });
-                
-                connection.end();
-            }
-            // 添加判断content
-            function insert_content(openId,content){
-                var modSql = 'UPDATE dataOfTJW SET content = ? WHERE openId = ?';
-                var modSqlParams = [openId,content];
-                //改
-                connection.query(modSql,modSqlParams,function (err, result) {
-                if(err){
-                        console.log('[UPDATE ERROR] - ',err.message);
-                        return;
-                }        
-                console.log('--------------------------UPDATE----------------------------');
-                console.log('UPDATE affectedRows',result.affectedRows);
-                console.log('-----------------------------------------------------------------\n\n');
-                });
-                
-                connection.end();
-            }
-
-            // 提取content
-            function getContentFromDB(){
-                var  sql = 'SELECT content FROM dataOfTJW';
-                //查
-                connection.query(sql,function (err, result) {
-                        if(err){
-                        console.log('[SELECT ERROR] - ',err.message);
-                        return;
-                        }
-                
-                    console.log('--------------------------SELECT----------------------------');
-                    console.log(result);
-                    var a=  JSON.parse(JSON.stringify(result,2))
-                    console.log('------------------------------------------------------------\n\n');  
-                    return a[0].content;
-                });
-                
-                connection.end();
-
-            }
-            // 提取openid用以判断
-            function getOpenIdFromDB(){
-                var  sql = 'SELECT openId FROM dataOfTJW';
-                //查
-                connection.query(sql,function (err, result) {
-                        if(err){
-                        console.log('[SELECT ERROR] - ',err.message);
-                        return;
-                        }
-                
-                    console.log('--------------------------SELECT----------------------------');
-                    console.log(result);
-                    var a=  JSON.parse(JSON.stringify(result,2))
-                    console.log('------------------------------------------------------------\n\n');  
-                    return a[0].openId;
-                });
-                
-                connection.end();
-
-            }
-
 
