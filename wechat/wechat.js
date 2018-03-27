@@ -349,6 +349,8 @@ module.exports = function(opt){
 
             //    同步操作插入数据库
             // 判断是否为空，
+            var s = yield getFrom.getContentFromDB(msg.FromUserName);
+            console.log('\n\n\n判断此处是：'+s +'\n\n\n')
             if(!(yield getFrom.getContentFromDB(msg.FromUserName))){
                yield getFrom.insert_openID(msg.FromUserName);
                 
@@ -364,8 +366,9 @@ module.exports = function(opt){
                var n = yield getFrom.getContentFromDB(msg.FromUserName);
                console.log('\n\n'+n+'\n\n')
 
+        if( playcount === 1 ){
             // 判断是否是同一个人，并且提取content内容，
-            if( msg.MsgType === 'text' && gl == msg.FromUserName && playcount === 1){
+            if( msg.MsgType === 'text' && gl == msg.FromUserName ){
 
                 var content = msg.Content;
                 console.log('content是:'+content);
@@ -421,8 +424,8 @@ module.exports = function(opt){
                     this.body = xmlToreply(msg.FromUserName,msg.ToUserName,now,back);
                     yield getFrom.insert_content(msg.FromUserName,n)                                       
                 }else if(n.match('邂逅') != null && (content === 'D' || content === 'd') && n.length==2 && n.indexOf(1) === -1){
-                     var sex = content.toUpperCase();
-                     n+=sex;
+                    var sex = content.toUpperCase();
+                    n+=sex;
                     yield getFrom.insert_sex(sex,msg.FromUserName)                     
                     var now = new Date().getTime();
                     this.status = 200;
@@ -477,13 +480,16 @@ module.exports = function(opt){
                     var now = new Date().getTime();                        
                     this.status = 200;
                     this.type = 'application/xml';
-                    var back = '恭喜你们成为邂逅实验室第XX对有缘人，对方也希望跟你认识，'+'\n'+
-                    '接下来请你们各自按照以下格式回复做一个自我介绍吧，当然对方也会向你介绍自己。'+'\n'+
+                    var back = '恭喜你们成为邂逅实验室的'+'\n'+
+                    '第XX对有缘人！'+'\n'+
+                    '聊天前简单的自我介绍很有必要'+'\n'+
+                    '请先一次性回答以下问题：'+'\n'+
                     '1.该怎么称呼你？'+'\n'+
                     '2.你是北师、北理、UIC的学生或是其他身份？'+'\n'+
                     '3.一般怎么安排自己的周末？'+'\n'+
                     '4.最喜欢的一首歌？'+'\n'+
                     '5.最向往的城市？'
+                    
                     this.body = xmlToreply(msg.FromUserName,msg.ToUserName,now,back);
                     yield getFrom.insert_content(msg.FromUserName,n);                      
                 }
@@ -579,9 +585,7 @@ module.exports = function(opt){
                     yield getFrom.insert_content(msg.FromUserName,n);                      
                     
 
-                 }
-                 
-                 
+                 } 
                  // 存储留言1；
                 else if((n.indexOf('邂逅A1image1') === 0 || n.indexOf('邂逅B1image1') === 0 ||n.indexOf('邂逅C1image1') === 0 || n.indexOf('邂逅D1image1') === 0) && n.indexOf('voice') === -1 && content != ''){
                      // 存储留言   
@@ -662,22 +666,20 @@ module.exports = function(opt){
                     yield getFrom.ore_play(msg.FromUserName);   
 
                 }
-            
                 else{
 
                     var now = new Date().getTime();
                     this.status = 200;
                     this.type = 'application/xml';
-                    var back = '请重新开始 【 邂逅 】';
+                    var back = '请按照确认的方式 输入';
                     this.body = xmlToreply(msg.FromUserName,msg.ToUserName,now,back);
                     console.log("that.body:"+this.body);
 
-                }
-
-                    
-            }
+                }  
+            }   
+           
                  //    图片
-            else if(msg.MsgType === 'image' && (n.indexOf('邂逅A1') === 0 || n.indexOf('邂逅B1') === 0 ||n.indexOf('邂逅C1') === 0 || n.indexOf('邂逅D1') === 0) ){
+                else if(msg.MsgType === 'image' && (n.indexOf('邂逅A1') === 0 || n.indexOf('邂逅B1') === 0 ||n.indexOf('邂逅C1') === 0 || n.indexOf('邂逅D1') === 0) ){
                      var now = new Date().getTime()                   
                          
                          n += msg.MsgType;
@@ -696,9 +698,9 @@ module.exports = function(opt){
                      
                      
 
-             }
+                }
          
-                 else if(msg.MsgType === 'voice' && (n.indexOf('邂逅A1image1text') === 0 || n.indexOf('邂逅B1image1text') === 0 ||n.indexOf('邂逅C1image1text') === 0 || n.indexOf('邂逅D1image1text') === 0)){
+                else if(msg.MsgType === 'voice' && (n.indexOf('邂逅A1image1text') === 0 || n.indexOf('邂逅B1image1text') === 0 ||n.indexOf('邂逅C1image1text') === 0 || n.indexOf('邂逅D1image1text') === 0)){
 
                      var now = new Date().getTime()
                      this.status = 200;
@@ -730,26 +732,37 @@ module.exports = function(opt){
                     this.body = voicetype(msg.FromUserName,msg.ToUserName,now,back_msg)
                     yield getFrom.insert_content(msg.FromUserName,n);                      
                      
-                 }
-                 else{
-                     var now = new Date().getTime();
-                     this.status = 200;
-                     this.type = 'application/xml';
-                     var back = '听不懂你在说的是什么？';
-                     this.body = xmlToreply(msg.FromUserName,msg.ToUserName,now,back)
-                     console.log("that.body:"+this.body)
-                 }
-         
-              
-               
+                }
 
-           
-                
+            }
+            else if(playcount === 0 && msg.Content === '邂逅'){
+                var now = new Date().getTime();
+                this.status = 200;
+                this.type = 'application/xml';
+                var back = '你的邂逅机会已经用光了，请<a href=\"http://www.baidu.com\" >【点击此处】</a>获得再1次机会！';
+                // this.body = xmlToreply(msg.FromUserName,msg.ToUserName,now,back)
+                this.body = '<xml><ToUserName><![CDATA['+ msg.FromUserName+']]></ToUserName><FromUserName><![CDATA['+ msg.ToUserName+']]></FromUserName><CreateTime><![CDATA['+ now +']]></CreateTime><MsgType>text</MsgType><Content><![CDATA['+back+']]></Content>'+'</xml>'
+                console.log("that.body:"+this.body)
+            }
+            // else if(msg.Content === '2018'){
+
+            // }
+            else{
+                var now = new Date().getTime();
+                this.status = 200;
+                this.type = 'application/xml';
+                var back = '听不懂你在说的是什么？';
+                this.body = xmlToreply(msg.FromUserName,msg.ToUserName,now,back)
+              
+                console.log("that.body:"+this.body)
+            }
+
                     //    return ;
              
            
            
                 }
+            
          
            
        }
@@ -817,6 +830,22 @@ function imgType(a,b,c,d){
     console.log(reply);
     return reply;
 }
+// 随机回复图片
+
+function random_imgReply(a,b,c,d){
+    var ac = Math.floor(Math.random()*Save_imgUrl.length);
+                        if(Save_imgUrl[ac] == d){
+                            if(ac==0){
+                            var back_msg = Save_imgUrl[ac+1];
+                                
+                            }
+                            var back_msg = Save_imgUrl[ac];
+                        }else{
+                            var back_msg = Save_imgUrl[ac];
+                            
+                        }
+}
+
 
 // 回复图文
 function tuWen(a,b,c,d){
