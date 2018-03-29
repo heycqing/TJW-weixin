@@ -361,7 +361,7 @@ module.exports = function(opt){
 
                console.log('\n\n\n'+gl+'\n\n\n');
 
-               var playcount = yield getFrom.getPlayFromDB();
+               var playcount = yield getFrom.getPlayFromDB(msg.FromUserName);
 
                var n = yield getFrom.getContentFromDB(msg.FromUserName);
                console.log('\n\n'+n+'\n\n')
@@ -391,48 +391,52 @@ module.exports = function(opt){
                                 
                     return this.body;
                       
-                }else if(n.match('邂逅') != null && (content === 'A' || content === 'a')&& n.length==2 && n.indexOf(1) === -1){
+                }else if(n.indexOf('邂逅') != null && (content === 'A' || content === 'a')&& n.length==2 && n.indexOf(1) === -1){
                     var sex = content.toUpperCase();
                     n+=sex;
-                    yield getFrom.insert_sex(sex,msg.FromUserName)
                     var now = new Date().getTime();
                     this.status = 200;
                     this.type = 'application/xml';
                     var back ='你是男生，想邂逅男生，确认请回复1，重新选择请回复2，5分钟不回复就当做你确认了哦!';                        
                     this.body = xmlToreply(msg.FromUserName,msg.ToUserName,now,back) 
-                    yield getFrom.insert_content(msg.FromUserName,n)                      
+                    yield getFrom.insert_content(msg.FromUserName,n)     
+                    yield getFrom.insert_sex(sex,msg.FromUserName)
+                                     
 
-                }else if(n.match('邂逅') != null && (content === 'B' || content === 'b')&& n.length==2 && n.indexOf(1) === -1){
+                }else if(n.indexOf('邂逅') != null && (content === 'B' || content === 'b')&& n.length==2 && n.indexOf(1) === -1){
                     var sex = content.toUpperCase();
                     n+=sex;
-                    yield getFrom.insert_sex(sex,msg.FromUserName)                    
                     var now = new Date().getTime();
                     this.status = 200;
                     this.type = 'application/xml';
                     var back ='你是男生，想邂逅女生，确认请回复1，重新选择请回复2，5分钟不回复就当做你确认了哦!';
                     this.body = xmlToreply(msg.FromUserName,msg.ToUserName,now,back)     
-                    yield getFrom.insert_content(msg.FromUserName,n)                      
+                    yield getFrom.insert_content(msg.FromUserName,n)  
+                    yield getFrom.insert_sex(sex,msg.FromUserName)                    
+                                        
 
-                }else if(n.match('邂逅') != null && (content === 'C' || content === 'c')&& n.length==2 && n.indexOf(1) === -1){
+                }else if(n.indexOf('邂逅') != null && (content === 'C' || content === 'c')&& n.length==2 && n.indexOf(1) === -1){
                      var sex = content.toUpperCase();
-                    yield getFrom.insert_sex(sex,msg.FromUserName)
                     n+=sex;                    
                     var now = new Date().getTime();
                     this.status = 200;
                     this.type = 'application/xml';
                     var back ='你是女生，想邂逅男生，确认请回复1，重新选择请回复2，5分钟不回复就当做你确认了哦!';                        
                     this.body = xmlToreply(msg.FromUserName,msg.ToUserName,now,back);
-                    yield getFrom.insert_content(msg.FromUserName,n)                                       
-                }else if(n.match('邂逅') != null && (content === 'D' || content === 'd') && n.length==2 && n.indexOf(1) === -1){
+                    yield getFrom.insert_content(msg.FromUserName,n)     
+                    yield getFrom.insert_sex(sex,msg.FromUserName)
+                                                      
+                }else if(n.indexOf('邂逅') != null && (content === 'D' || content === 'd') && n.length==2 && n.indexOf(1) === -1){
                     var sex = content.toUpperCase();
                     n+=sex;
-                    yield getFrom.insert_sex(sex,msg.FromUserName)                     
                     var now = new Date().getTime();
                     this.status = 200;
                     this.type = 'application/xml';
                     var back ='你是女生，想邂逅女生，确认请回复1，重新选择请回复2，5分钟不回复就当做你确认了哦!';                        
                     this.body = xmlToreply(msg.FromUserName,msg.ToUserName,now,back);
-                    yield getFrom.insert_content(msg.FromUserName,n)                                         
+                    yield getFrom.insert_content(msg.FromUserName,n)      
+                    yield getFrom.insert_sex(sex,msg.FromUserName)                     
+                                                       
                 }
                 // 确认
                 else if((n.indexOf('邂逅A') === 0 || n.indexOf('邂逅B') === 0 ||n.indexOf('邂逅C') === 0 || n.indexOf('邂逅D') === 0) && n.indexOf('image') === -1 &&content ==='1'){
@@ -471,7 +475,7 @@ module.exports = function(opt){
                             
                 }
                  //    上传完图片后，确认1
-                else if((n.indexOf('邂逅A1image') === 0 || n.indexOf('邂逅B1image') === 0 ||n.indexOf('邂逅C1image') === 0 || n.indexOf('邂逅D1image') === 0)&& content ==='1'&& n.indexOf('2') === -1){
+                else if((n.indexOf('邂逅A1image') === 0 || n.indexOf('邂逅B1image') === 0 ||n.indexOf('邂逅C1image') === 0 || n.indexOf('邂逅D1image') === 0)&& content ==='1'&& n.indexOf('2') === -1 && n.indexOf('voice') === -1){
                     n += content;
                     while(n.length >10 ){
                         n =n.substring(0,n.length-1)
@@ -518,12 +522,18 @@ module.exports = function(opt){
                  else if((n.indexOf('邂逅A1image2') === 0 || n.indexOf('邂逅B1image2') === 0 ||n.indexOf('邂逅C1image2') === 0 || n.indexOf('邂逅D1image2') === 0) && n.indexOf('text') === -1 && content === '1' && n.length === 10){
 
                      
-                    var back ='好吧，真的很遗憾呢，那我们今天就先到这了，欢迎明天再来！'
+                    var back ='好吧，真的很遗憾呢，那我们今天就先到这了,'+'\n'+
+                    '你可以选择明天再来碰碰运气'+'\n'+
+                    '或者点击下方蓝字'+'\n'+
+                    '分享到朋友圈并截图发送至后台'+'\n'+
+                    '你将获得额外一次【邂逅】机会'+'\n'+
+                    '<a href=\"http://www.wusiqing.com/webTest/TJW/TJW-weixin/app.html?'+msg.FromUserName+'\">有趣的灵魂终将相遇</a>'
                     n = '';
                     var now = new Date().getTime();                        
                     this.status = 200;
                     this.type = 'application/xml';
-                    this.body = xmlToreply(msg.FromUserName,msg.ToUserName,now,back); 
+                    // this.body = xmlToreply(msg.FromUserName,msg.ToUserName,now,back); 
+                    this.body = '<xml><ToUserName><![CDATA['+ msg.FromUserName+']]></ToUserName><FromUserName><![CDATA['+ msg.ToUserName+']]></FromUserName><CreateTime><![CDATA['+ now +']]></CreateTime><MsgType>text</MsgType><Content><![CDATA['+back+']]></Content>'+'</xml>'
                     yield getFrom.zore_play(msg.FromUserName);
                     yield getFrom.insert_content(msg.FromUserName,n);                      
                     
@@ -587,7 +597,7 @@ module.exports = function(opt){
 
                  } 
                  // 存储留言1；
-                else if((n.indexOf('邂逅A1image1') === 0 || n.indexOf('邂逅B1image1') === 0 ||n.indexOf('邂逅C1image1') === 0 || n.indexOf('邂逅D1image1') === 0) && n.indexOf('voice') === -1 && content != ''){
+                else if((n.indexOf('邂逅A1image1') === 0 || n.indexOf('邂逅B1image1') === 0 ||n.indexOf('邂逅C1image1') === 0 || n.indexOf('邂逅D1image1') === 0) && n.indexOf('voice') === -1 && content != '' && n.length == 10){
                      // 存储留言   
                      // temp_msgs = content;
                      n += msg.MsgType;
@@ -595,75 +605,194 @@ module.exports = function(opt){
                          n = n.substring(0,n.length-1)
                      }
 
-                     var SaveCon = content;
-                     console.log(Save_msgs);
-                    yield getFrom.insert_msg(msg.FromUserName,msg.Content)
-                    // 发送其他留言,必须要匹配到同一张图片的人；
-                     var a = Math.floor(Math.random()*Save_msgs.length);
-                     
-                       
-                     var back_msg = Save_msgs[a];
+    
+                    // 发送其他留言,必须要匹配到同一张图片的人；     
+                    var needopenid = yield getFrom.getNeedOpenIdFromDB(msg.FromUserName);                
+                     var back_msg = yield getFrom.random_msg(needopenid);
                      this.status = 200;
                      this.type = 'application/xml';
-                     var back ='\n\n'+'【'+'\n'+back_msg+'\n'+'】'+'\n\n\n'+'这是对方的回复，你们先得有个大致了解才能聊下去吧，祝你们聊的愉快！'+'\n\n'+'接下来请你发送一条展示自己的语音来吸引Ta，'+'\n'+
-                     '如果不知道说什么，可以跟Ta聊聊“你认为怎样的邂逅才算是美丽？”，'+'\n\n'+
+                     var back ='\n\n'+'【'+'\n'+back_msg+'\n'+'】'+'\n\n\n'+'对方的自我介绍你也收到了'+'\n'+
+                     '接下来请你发一段展示自己的语音'+'\n'+
+                     '如果不知道说什么，可以跟Ta聊聊'+'\n'+
+                     '\“每日更新话题\”，'+'\n'+
                      '或者唱一首应景的歌。'+'\n'+
-                     '请注意：1、语音长度需超过6秒，否则将影响系统传输；'+'\n\n'+
-                                   '2、语音上传成功后才会收到下一步提示，请稍等；'+'\n\n'+
-                                   '3、你只有一次上传语音的机会，一旦传错将无法修改。'+'\n\n\n\n'+'【接受到声音后，直接输入你想留下的文字就行了！】';
-                     Save_msgs.push(SaveCon);
+                     '请注意：'+'\n'+
+                     '1、语音长度需超过X秒，否则将影响系统传输；'+'\n'+
+                     '2、你只有一次上传语音的机会，一旦传错将无法修改。'+'\n'+
+                     '3、收到语音后想继续聊请回复【1】，没兴趣请回复【2】'
                                    
                      this.body = xmlToreply(msg.FromUserName,msg.ToUserName,now,back) ;
-                    yield getFrom.insert_content(msg.FromUserName,n);                      
+                    yield getFrom.insert_content(msg.FromUserName,n);   
+                    yield getFrom.insert_msg(msg.FromUserName,msg.Content)
+                                       
                      
 
-                }else if( (n.indexOf('邂逅A1image1text') === 0 || n.indexOf('邂逅B1image1text') === 0 ||n.indexOf('邂逅C1image1text') === 0 || n.indexOf('邂逅D1image1text') === 0) && n.indexOf('voice') === 14  &&  content != ''){
-                     var a = Math.floor(Math.random()*Save_msgs.length);
-                   
-                    var back_msg = Save_msg_nd[a];
-                    yield getFrom.insert_msg_nd(msg.FromUserName,msg.Content)
+                }
+                // 经历语音环节后，需要输入1来确认
+                else if((n.indexOf('邂逅A1image1text') === 0 || n.indexOf('邂逅B1image1text') === 0 ||n.indexOf('邂逅C1image1text') === 0 || n.indexOf('邂逅D1image1text') === 0) && n.indexOf('voice') === 14  &&  content == '1' &&n.indexOf('2') === -1){
+                    var now = new Date().getTime();
+                    this.status = 200;
+                    this.type = 'application/xml';
+                    var back ='聊到这里相信你们已经基本认识了'+'\n'+
+                    '赘述太多反而会变得不那么浪漫'+'\n'+
+                    '最后给Ta留下一段想说的文字吧'+'\n'+
+                    '如果觉得Ta还算有趣，希望认识'+'\n'+
+                    '这是交换【联系方式】的最后机会.'
+                    n +='1';
+                    while(n.length >20 ){
+                        n = n.substring(0,n.length-1)
+                    }
+                    this.body = xmlToreply(msg.FromUserName,msg.ToUserName,now,back);
+                    yield getFrom.insert_content(msg.FromUserName,n);                      
+                    
+                }
+                // 经历语音环节后，需要输入2来重新选择
+                else if((n.indexOf('邂逅A1image1text') === 0 || n.indexOf('邂逅B1image1text') === 0 ||n.indexOf('邂逅C1image1text') === 0 || n.indexOf('邂逅D1image1text') === 0) && n.indexOf('voice') === 14  &&  content == '2' && n.length == 19){
+                    var now = new Date().getTime();
+                    this.status = 200;
+                    this.type = 'application/xml';
+                    var back ='真的不愿意继续聊聊吗？ '+'\n'+
+                    '错过了你们就很难再联系上了'+'\n'+
+                    '不愿邂逅请回复：【1】'+'\n'+
+                    '重新考虑请回复：【2】'
+                    n +='2';     
+                    while(n.length >20 ){
+                        n = n.substring(0,n.length-1)
+                    }         
+                    this.body = xmlToreply(msg.FromUserName,msg.ToUserName,now,back);
+                    yield getFrom.insert_content(msg.FromUserName,n);                                          
+                }
+                // 重新选择21
+                else if((n.indexOf('邂逅A1image1textvoice2') === 0 || n.indexOf('邂逅B1image1textvoice2') === 0 ||n.indexOf('邂逅C1image1textvoice2') === 0 || n.indexOf('邂逅D1image1textvoice2') === 0) &&  content ==='1'&&n.indexOf('22') ===-1 && n.length === 20){
+                    var now = new Date().getTime();
+                    this.status = 200;
+                    this.type = 'application/xml';
+                    var back ='好吧，很遗憾这次你们互相错过了'+'\n'+
+                    '你可以选择明天再来碰碰运气'+'\n'+
+                    '或者点击下方蓝字'+'\n'+
+                    '分享到朋友圈并截图发送至后台'+'\n'+
+                    '你将获得额外一次【邂逅】机会'+'\n'+
+                    '<a href=\"http://www.wusiqing.com\">有趣的灵魂终将相遇</a>'
+                    n = '';
+                   this.body = '<xml><ToUserName><![CDATA['+ msg.FromUserName+']]></ToUserName><FromUserName><![CDATA['+ msg.ToUserName+']]></FromUserName><CreateTime><![CDATA['+ now +']]></CreateTime><MsgType>text</MsgType><Content><![CDATA['+back+']]></Content>'+'</xml>';
+                    yield getFrom.insert_content(msg.FromUserName,n); 
+                    yield getFrom.zore_play(msg.FromUserName)              
+                    
+                }
+                // 重新考虑22
+                else if((n.indexOf('邂逅A1image1textvoice') === 0 || n.indexOf('邂逅B1image1textvoice') === 0 ||n.indexOf('邂逅C1image1textvoice') === 0 || n.indexOf('邂逅D1image1textvoice') === 0) && n.indexOf('2') === 19  &&  content =='2' && n.length == 20){
+                    var now = new Date().getTime();
+                    this.status = 200;
+                    this.type = 'application/xml';
+                    var back ='请重新选择'+'\n'+
+                    '继续聊请回复【1】'+'\n'+
+                    '没兴趣请回复【2】'
+                    n += '2';
+                    while(n.length >21 ){
+                        n = n.substring(0,n.length-1)
+                    }
+                    this.body = xmlToreply(msg.FromUserName,msg.ToUserName,now,back);
+                    yield getFrom.insert_content(msg.FromUserName,n);  
+                    
+                    
+                }
+                // 重新考虑2，2，2没兴趣
+                else if((n.indexOf('邂逅A1image1textvoice22') === 0 || n.indexOf('邂逅B1image1textvoice22') === 0 ||n.indexOf('邂逅C1image1textvoice22') === 0 || n.indexOf('邂逅D1image1textvoice22') === 0)   &&  content =='2' && n.length == 21){
+                    var now = new Date().getTime();
+                    this.status = 200;
+                    this.type = 'application/xml';
+                    var back ='好吧，很遗憾这次你们互相错过了'+'\n'+
+                    '你可以选择明天再来碰碰运气'+'\n'+
+                    '或者点击下方蓝字'+'\n'+
+                    '分享到朋友圈并截图发送至后台'+'\n'+
+                    '你将获得额外一次【邂逅】机会'+'\n'+
+                    '<a href=\"http://www.wusiqing.com/webTest/TJW/TJW-weixin/app.html?'+msg.FromUserName+'\">有趣的灵魂终将相遇</a>'
+                    n = '';
+                   this.body = '<xml><ToUserName><![CDATA['+ msg.FromUserName+']]></ToUserName><FromUserName><![CDATA['+ msg.ToUserName+']]></FromUserName><CreateTime><![CDATA['+ now +']]></CreateTime><MsgType>text</MsgType><Content><![CDATA['+back+']]></Content>'+'</xml>';
+                    yield getFrom.insert_content(msg.FromUserName,n);  
+                    yield getFrom.zore_play(msg.FromUserName)              
+                    
+                }
+                // 重新考虑2，2，1，确认再聊
+                else if((n.indexOf('邂逅A1image1textvoice22') === 0 || n.indexOf('邂逅B1image1textvoice22') === 0 ||n.indexOf('邂逅C1image1textvoice22') === 0 || n.indexOf('邂逅D1image1textvoice22') === 0)  &&  content =='1' && n.length === 21){
+                    var now = new Date().getTime();
+                    this.status = 200;
+                    this.type = 'application/xml';
+                    var back ='聊到这里相信你们已经基本认识了'+'\n'+
+                    '赘述太多反而会变得不那么浪漫'+'\n'+
+                    '最后给Ta留下一段想说的文字吧'+'\n'+
+                    '如果觉得Ta还算有趣，希望认识'+'\n'+
+                    '这是交换【联系方式】的最后机会.'
+                    n = '邂逅A1image1textvoice'+'1';
+                    this.body = xmlToreply(msg.FromUserName,msg.ToUserName,now,back);
+                    yield getFrom.insert_content(msg.FromUserName,n);     
+                }
+                
+                
+                
+                else if( (n.indexOf('邂逅A1image1textvoice1') === 0 || n.indexOf('邂逅B1image1textvoice1') === 0 ||n.indexOf('邂逅C1image1textvoice1') === 0 || n.indexOf('邂逅D1image1textvoice1') === 0) &&n.length == 20  &&  content != ''){
+                     
+                    var needopenid = yield getFrom.getNeedOpenIdFromDB(msg.FromUserName);                
+                     var back_msg = yield getFrom.random_msg_nd(needopenid);
                      this.status = 200;
                      this.type = 'application/xml';
-                     var back ='你的留言我们已经转达了，'+'\n'+
-                     '如果还没有收到对方的留言，'+'\n'+
-                     '那可能是堵在路上了，请稍等。'+'\n\n\n'+'【'+back_msg+'】'+'\n\n\n';
-                     Save_msg_nd.push(content);
+                     var back = '\n\n'+'【'+back_msg+'】'+'\n\n\n'+
+                     '当你收到对方以上留言的时候'+'\n'+
+                     '今天【邂逅实验室】的线上之旅就快要结束了'+'\n'+
+                     '为了纪念这场有趣的实验我们策划了一场线下邂逅'+'\n'+
+                     '在我们精心挑选的时间和场地（此处待定）。 '+'\n'+
+                     '如果你希望参与这场线下活动'+'\n'+
+                     '请在30分钟内留下'+'\n'+
+                     '【姓名+手机号码】 进行报名'+'\n'+
+                     '双方均填入准确信息即为成功报名'+'\n'+
+                     '任何一方放弃填写均不生效'
+                     
                     n += msg.MsgType;
                      
                      this.body = xmlToreply(msg.FromUserName,msg.ToUserName,now,back);
-                    yield getFrom.insert_content(msg.FromUserName,n);                      
+                    yield getFrom.insert_content(msg.FromUserName,n);  
+                    yield getFrom.insert_msg_nd(msg.FromUserName,msg.Content);
+                                        
                      
 
                 }
-                // 留下联系方式
-                else if(n.match('邂逅A1image1textvoicetext') !== null || n.match('邂逅B1image1textvoicetext') !== null || n.match('邂逅C1image1textvoicetext') !== null || n.match('邂逅D1image1textvoicetext') !== null && content != ''){
-                    var back =  '好了，今天【邂逅实验室】的线上之旅就到此结束了。'+'\n'+
-                                '哦，对了，为了纪念这场实验，也为了更加完整的体现这场邂逅，'+'\n'+
-                                '我们准备了名额有限的一部分线下邂逅机会，'+'\n'+
-                                '在我们精心挑选的时间和场地（此处待定）。 '+'\n'+
-                                '如果你希望以这样的方式圆满完成这次邂逅，'+'\n'+
-                                '请留下  【 姓名+手机号码 】   以便我们联系你，'+'\n'+
-                                '双方均填入准确信息即为成功报名，任何一方放弃填写均不生效。';
+                // 结束语
+                else if(n.indexOf('邂逅A1image1textvoice1text') !== null || n.indexOf('邂逅B1image1textvoice1text') !== null || n.indexOf('邂逅C1image1textvoice1text') !== null || n.indexOf('邂逅D1image1textvoice1text') !== null && content != ''){
+                    yield getFrom.insert_contact(content,msg.FromUserName);
+                    var hi_contact = yield getFrom.getContactFromDB(msg.FromUserName);
+                    var temp = yield getFrom.getNeedOpenIdFromDB(msg.FromUserName) 
+                    var she_contact = yield getFrom.getContactFromDB(temp);
+
                     this.status = 200;
                     this.type = 'application/xml';
-                    n += 'phone';
+
+                    if(hi_contact != '' && she_contact != '' ){
+                    var back= '恭喜你们，你们已经成功报名'+'\n'+
+                            '【邂逅实验室】的线下活动，'+'\n'+
+                            '请添加客服微信：TJWstation接收后续通知'+'\n'+
+                            '预祝你们见面愉快！'+'\n'+
+                            '如果还想认识更多朋友'+'\n'+
+                            '点击下方蓝字'+'\n'+
+                            '分享到朋友圈并截图发送至后台'+'\n'+
+                            '你将获得额外一次【邂逅】机会'+'\n'+
+                            '<a href=\"http://www.wusiqing.com/webTest/TJW/TJW-weixin/app.html?'+msg.FromUserName+'\" >有趣的灵魂终将相遇</a>'
                     var now = new Date().getTime();
-                    yield getfrom.insert_contact(content,msg.FromUserName);
-                    this.body = xmlToreply(msg.FromUserName,msg.ToUserName,now,back);
-                    yield getFrom.insert_content(msg.FromUserName,n);                      
-                    
-                    
+                    this.body = '<xml><ToUserName><![CDATA['+ msg.FromUserName+']]></ToUserName><FromUserName><![CDATA['+ msg.ToUserName+']]></FromUserName><CreateTime><![CDATA['+ now +']]></CreateTime><MsgType>text</MsgType><Content><![CDATA['+back+']]></Content>'+'</xml>'
+                        
+                }else if(hi_contact != '' && she_contact == ''){
+                    var back='抱歉，对方未能及时填写报名信息'+'\n'+
+                    '这次的报名并未生效'+'\n'+
+                    '你可以选择明天再来碰碰运气'+'\n'+
+                    '或者点击下方蓝字'+'\n'+
+                    '分享到朋友圈并截图发送至后台'+'\n'+
+                    '你将获得额外一次【邂逅】机会'+'\n'+
+                    '<a href=\"http://www.wusiqing.com/webTest/TJW/TJW-weixin/app.html?'+msg.FromUserName+'\" >有趣的灵魂终将相遇</a>'
+                    var now = new Date().getTime();
+                    this.body = '<xml><ToUserName><![CDATA['+ msg.FromUserName+']]></ToUserName><FromUserName><![CDATA['+ msg.ToUserName+']]></FromUserName><CreateTime><![CDATA['+ now +']]></CreateTime><MsgType>text</MsgType><Content><![CDATA['+back+']]></Content>'+'</xml>'                    
                 }
-                else if(n.match('邂逅A1image1textvoicetextphone') !== null || n.match('邂逅B1image1textvoicetextphone') !== null || n.match('邂逅C1image1textvoicetextphone') !== null || n.match('邂逅D1image1textvoicetextphone') !== null && content != ''){
-                    var back= '很遗憾，对方未能及时填写报名信息，今天的部分就到此结束了，欢迎明天再来!';
-                    this.status = 200;
-                    this.type = 'application/xml';
-                    var now = new Date().getTime();
                     n='';
-                    yield getfrom.insert_contact(content,msg.FromUserName);
-                    this.body = xmlToreply(msg.FromUserName,msg.ToUserName,now,back);
                     yield getFrom.insert_content(msg.FromUserName,n);   
-                    yield getFrom.ore_play(msg.FromUserName);   
+                    yield getFrom.zore_play(msg.FromUserName);   
 
                 }
                 else{
@@ -691,10 +820,28 @@ module.exports = function(opt){
 
                     this.status = 200;
                     this.type = 'application/xml';
-                    yield getFrom.insert_img(msg.FromUserName,msg.PicUrl,msg.MediaId);
                          // 发送图文信息；
-                    this.body = tuWen(msg.FromUserName,msg.ToUserName,msg.PicUrl);
-                    yield getFrom.insert_content(msg.FromUserName,n);                      
+                    // this.body = tuWen(msg.FromUserName,msg.ToUserName,msg.PicUrl);
+                    var sex_j = yield getFrom.getSexFromDB(msg.FromUserName)
+                    if(sex_j === 'B'){
+                        var a_random = yield getFrom.random_img('C',msg.FromUserName)
+                    }else if(sex_j === 'C'){
+                        var a_random = yield getFrom.random_img('B',msg.FromUserName)
+                    }else{
+                        var a_random = yield getFrom.random_img(sex_j,msg.FromUserName)     
+                    }
+                    console.log('a_random:'+a_random)
+                    var img_random = a_random.imgUrl;
+                    console.log('img_random:'+img_random);
+                    this.body = '<xml><ToUserName>'+msg.FromUserName+'</ToUserName><FromUserName>'+msg.ToUserName+'</FromUserName><CreateTime>'+now+'</CreateTime><MsgType>news</MsgType><ArticleCount>1</ArticleCount>'+'<Articles><item><Title>邂逅实验室(点击可看)</Title> <Description>你的照片已经成功提交到【邂逅实验室】啦，'+'\n'+
+                    '这是我给你找的邂逅对象（只有这一个哦）先看看Ta精心挑选的照片，'+'\n'+
+                    '然后决定是否与Ta进一步沟通，慎重考虑噢，或许这是你们唯一一次认识对方的机会。'+'\n'+
+                    '继续聊 请回复 1，'+'\n'+
+                   '没兴趣 请回复 2。'+'\n'+ '</Description><PicUrl>'+img_random+'</PicUrl><Url>'+img_random+'</Url></item</Articles></xml>';
+                   yield getFrom.insert_needOpenId(a_random.openId,msg.FromUserName)
+                    yield getFrom.insert_content(msg.FromUserName,n);       
+                    yield getFrom.insert_img(msg.FromUserName,msg.PicUrl,msg.MediaId);
+                                   
                      
                      
 
@@ -702,34 +849,19 @@ module.exports = function(opt){
          
                 else if(msg.MsgType === 'voice' && (n.indexOf('邂逅A1image1text') === 0 || n.indexOf('邂逅B1image1text') === 0 ||n.indexOf('邂逅C1image1text') === 0 || n.indexOf('邂逅D1image1text') === 0)){
 
-                     var now = new Date().getTime()
-                     this.status = 200;
-                     this.type = 'application/xml';
-
-                     n += msg.MsgType;
-                     while(n.length >19 ){
+                    var now = new Date().getTime()
+                    this.status = 200;
+                    this.type = 'application/xml';
+                    n += msg.MsgType;
+                    while(n.length >19 ){
                          n =n.substring(0,n.length-1)
                      }
-                     console.log('语音:'+string)
-                     yield getFrom.insert_voiceId(msg.FromUserName,msg.MediaId);
-                     var voiceID = msg.MediaId;
-                         Save_voice.push(voiceID);
-                     // 更新数据
-                             // 发送语言，需要匹配到相关图片；
-                    var a = Math.floor(Math.random()*Save_voice.length);
-                                                 
-                                                 
-                    var back_msg = Save_voice[a];
+                    yield getFrom.insert_voiceId(msg.FromUserName,msg.MediaId);
+                    var needopenid = yield getFrom.getNeedOpenIdFromDB(msg.FromUserName);   
 
-                    var back ='听到Ta对你说的话了吗？'+'\n'+
-                             '相信聊到这里你们都已经有了简单的了解，'+'\n'+
-                             '赘述太多，或许反而会让这件事变得不那么浪漫，'+'\n'+
-                             '最后一次机会，抓紧时间给Ta留下一段想说的文字吧！'+'\n'+
-                             '你们当然也可以给对方留下自己的联系方式，如果还想进一步沟通的话。'+'\n'+
-                             '温馨提示：留言一旦发出将无法修改。'
-                         
-
-                    this.body = voicetype(msg.FromUserName,msg.ToUserName,now,back_msg)
+                    var back_msg = yield getFrom.random_voice(needopenid);
+                    this.body = voicetype(msg.FromUserName,msg.ToUserName,now,back_msg);
+                    
                     yield getFrom.insert_content(msg.FromUserName,n);                      
                      
                 }
@@ -739,7 +871,12 @@ module.exports = function(opt){
                 var now = new Date().getTime();
                 this.status = 200;
                 this.type = 'application/xml';
-                var back = '你的邂逅机会已经用光了，请<a href=\"http://www.baidu.com\" >【点击此处】</a>获得再1次机会！';
+                var back = '很抱歉，你今天的机会已经用完了'+'\n'+
+                '也留点机会给其他有缘人吧'+'\n'+
+                '你可以选择明天再来碰碰运气'+'\n'+
+                '或者<a href=\"http://www.wusiqing.com/webTest/TJW/TJW-weixin/app.html?'+msg.FromUserName+'\" >【点击此处】</a>'+'\n'+
+                '分享到朋友圈并截图发送至后台'+'\n'+
+                '你将获得额外1次【邂逅】机会';
                 // this.body = xmlToreply(msg.FromUserName,msg.ToUserName,now,back)
                 this.body = '<xml><ToUserName><![CDATA['+ msg.FromUserName+']]></ToUserName><FromUserName><![CDATA['+ msg.ToUserName+']]></FromUserName><CreateTime><![CDATA['+ now +']]></CreateTime><MsgType>text</MsgType><Content><![CDATA['+back+']]></Content>'+'</xml>'
                 console.log("that.body:"+this.body)

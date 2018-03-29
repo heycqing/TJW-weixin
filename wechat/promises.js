@@ -84,7 +84,7 @@ function findit(arr,val){
 }
 
 // 提取play
-exports.getPlayFromDB = function(){
+exports.getPlayFromDB = function(openId){
     return new Promise(function(resolve,reject){
         var connection = mysql.createConnection({     
             host     : '39.108.58.83',       
@@ -96,7 +96,7 @@ exports.getPlayFromDB = function(){
         
         connection.connect();
 
-        var  sql = 'SELECT play FROM dataOfTJW';
+        var  sql = 'SELECT play FROM dataOfTJW where openId ='+'\"'+openId+'\"';
         //查
         connection.query(sql,function (err, result) {
                 if(err){
@@ -115,6 +115,72 @@ exports.getPlayFromDB = function(){
 
     })
 }
+// 提取sex
+exports.getSexFromDB = function(openId){
+    return new Promise(function(resolve,reject){
+        var connection = mysql.createConnection({     
+            host     : '39.108.58.83',       
+            user     : 'root',              
+            password : '1234',       
+            port: '3306',                   
+            database: 'TJW', 
+        }); 
+        
+        connection.connect();
+
+        var  sql = 'SELECT sex FROM dataOfTJW where openId = '+'\"'+openId+'\"';
+        //查
+        connection.query(sql,function (err, result) {
+                if(err){
+                console.log('[SELECT ERROR] - ',err.message);
+                return;
+                }
+        
+            console.log('--------------------------SELECT----------------------------');
+            console.log(result);
+            var a=  JSON.parse(JSON.stringify(result,2))
+            console.log('------------------------------------------------------------\n\n');  
+            console.log(a[0].sex)
+            resolve(a[0].sex);
+        });
+        connection.end()
+
+    })
+}
+// 提取needopenid 
+exports.getNeedOpenIdFromDB = function(openId){
+
+    return new Promise(function(resolve,reject){
+        var connection = mysql.createConnection({     
+            host     : '39.108.58.83',       
+            user     : 'root',              
+            password : '1234',       
+            port: '3306',                   
+            database: 'TJW', 
+        }); 
+        
+        connection.connect();
+
+        var  sql = 'SELECT needOpenId FROM dataOfTJW where openId = '+'\"'+openId+'\"';
+        //查
+        connection.query(sql,function (err, result) {
+                if(err){
+                console.log('[SELECT ERROR] - ',err.message);
+                return;
+                }
+        
+            console.log('--------------------------SELECT----------------------------');
+            console.log(result);
+            var a=  JSON.parse(JSON.stringify(result,2))
+            console.log('------------------------------------------------------------\n\n');  
+            console.log(a[0].needOpenId)
+            resolve(a[0].needOpenId);
+        });
+        connection.end()
+
+    })
+}
+
 
 // 添加openid;
 exports.insert_openID = function(openId){
@@ -211,6 +277,8 @@ exports.insert_sex = function(sex,openId){
         console.log('-----------------------------------------------------------------\n\n');
         resolve();
         });
+
+
         
         connection.end();
     })
@@ -247,6 +315,185 @@ exports.insert_img = function(openId,imgUrl,imgId){
         connection.end();
     })
    
+}
+// 添加needOpenId
+exports.insert_needOpenId = function(needopenId,openId){
+    return new Promise(function(resolve,reject){
+        var connection = mysql.createConnection({     
+            host     : '39.108.58.83',       
+            user     : 'root',              
+            password : '1234',       
+            port: '3306',                   
+            database: 'TJW', 
+        }); 
+        
+        connection.connect();
+        var modSql = 'UPDATE dataOfTJW SET needOpenId = ? WHERE openId = ?';
+        var modSqlParams = [needopenId,openId];
+        //改
+        connection.query(modSql,modSqlParams,function (err, result) {
+        if(err){
+                console.log('[UPDATE ERROR] - ',err.message);
+                return;
+        }        
+        console.log('--------------------------UPDATE----------------------------');
+        console.log('UPDATE affectedRows',result.affectedRows);
+        console.log('-----------------------------------------------------------------\n\n');
+        resolve();
+        });
+        
+        connection.end();
+    })
+}
+// 随机图片提取
+exports.random_img = function(sex,openId){
+    return new Promise(function(resolve,reject){
+        // 建立数据库长链接；
+        var connection = mysql.createConnection({     
+            host     : '39.108.58.83',       
+            user     : 'root',              
+            password : '1234',       
+            port: '3306',                   
+            database: 'TJW', 
+        }); 
+        
+        connection.connect();
+        var modSql = 'select imgUrl,openId from dataOfTJW WHERE sex = ? ';
+        var modSqlParams = [sex];
+        
+        //改
+        connection.query(modSql,modSqlParams,function (err, result) {
+        if(err){
+                console.log('[UPDATE ERROR] - ',err.message);
+                return;
+        }        
+        console.log('--------------------------UPDATE----------------------------');
+        console.log('UPDATE affectedRows',result.affectedRows);
+        console.log('-----------------------------------------------------------------\n\n');
+        var a=  JSON.parse(JSON.stringify(result,2))
+        var i = Math.floor(Math.random()*a.length);        
+        if(a[i].openId != openId){
+            console.log(a[i])
+            resolve(a[i]);
+        }else{
+            if(i-1 < 0){
+                console.log(a[i])              
+                resolve(a[i])
+            }else{
+                console.log(a[i-1])      
+                resolve(a[i-1])
+            }
+        }
+        
+
+        
+        });
+        
+        connection.end();
+
+    })
+
+}
+// 提取语音
+exports.random_voice = function(needopenId){
+    return new Promise(function(resolve,reject){
+        // 建立数据库长链接；
+        var connection = mysql.createConnection({     
+            host     : '39.108.58.83',       
+            user     : 'root',              
+            password : '1234',       
+            port: '3306',                   
+            database: 'TJW', 
+        }); 
+        
+        connection.connect();
+        var modSql = 'select voiceId from dataOfTJW WHERE openId = ? ';
+        var modSqlParams = [needopenId];
+        
+        //改
+        connection.query(modSql,modSqlParams,function (err, result) {
+        if(err){
+                console.log('[UPDATE ERROR] - ',err.message);
+                return;
+        }        
+        console.log('--------------------------UPDATE----------------------------');
+        console.log('UPDATE affectedRows',result.affectedRows);
+        console.log('-----------------------------------------------------------------\n\n');
+        var a=  JSON.parse(JSON.stringify(result,2))
+        resolve(a[0].voiceId)
+        });
+        
+        connection.end();
+
+    })
+}
+
+// 提取第一次留言
+exports.random_msg = function(needopenId){
+    return new Promise(function(resolve,reject){
+        // 建立数据库长链接；
+        var connection = mysql.createConnection({     
+            host     : '39.108.58.83',       
+            user     : 'root',              
+            password : '1234',       
+            port: '3306',                   
+            database: 'TJW', 
+        }); 
+        
+        connection.connect();
+        var modSql = 'select msg from dataOfTJW WHERE openId = ? ';
+        var modSqlParams = [needopenId];
+        
+        //改
+        connection.query(modSql,modSqlParams,function (err, result) {
+        if(err){
+                console.log('[UPDATE ERROR] - ',err.message);
+                return;
+        }        
+        console.log('--------------------------UPDATE----------------------------');
+        console.log('UPDATE affectedRows',result.affectedRows);
+        console.log('-----------------------------------------------------------------\n\n');
+        var a=  JSON.parse(JSON.stringify(result,2))
+        resolve(a[0].msg)
+        });
+        
+        connection.end();
+
+    })
+}
+
+// 提取第二次留言
+exports.random_msg_nd = function(needopenId){
+    return new Promise(function(resolve,reject){
+        // 建立数据库长链接；
+        var connection = mysql.createConnection({     
+            host     : '39.108.58.83',       
+            user     : 'root',              
+            password : '1234',       
+            port: '3306',                   
+            database: 'TJW', 
+        }); 
+        
+        connection.connect();
+        var modSql = 'select msg_nd from dataOfTJW WHERE openId = ? ';
+        var modSqlParams = [needopenId];
+        
+        //改
+        connection.query(modSql,modSqlParams,function (err, result) {
+        if(err){
+                console.log('[UPDATE ERROR] - ',err.message);
+                return;
+        }        
+        console.log('--------------------------UPDATE----------------------------');
+        console.log('UPDATE affectedRows',result.affectedRows);
+        console.log('-----------------------------------------------------------------\n\n');
+        var a=  JSON.parse(JSON.stringify(result,2))
+        resolve(a[0].msg_nd)
+        });
+        
+        connection.end();
+
+    })
 }
 
 
@@ -349,7 +596,7 @@ exports.insert_msg_nd = function(openId,msg_nd){
         
 }
     
-    // 设定play为0
+    // 设定play为0,needOpenId为空；
 exports.zore_play = function(openId){
 
     return new Promise(function(resolve,reject){
@@ -362,8 +609,8 @@ exports.zore_play = function(openId){
         }); 
         
         connection.connect();
-        var modSql = 'UPDATE dataOfTJW SET play = ? WHERE openId = ?';
-        var modSqlParams = [0,openId];
+        var modSql = 'UPDATE dataOfTJW SET play = ?,needOpenId=? WHERE openId = ?';
+        var modSqlParams = [0,' ',openId];
         //改
         connection.query(modSql,modSqlParams,function (err, result) {
         if(err){
@@ -414,3 +661,39 @@ exports.insert_contact = function(contact,openId){
 
 }
    
+// 提取获取手机号码；
+exports.getContactFromDB = function(openId){
+    return new Promise(function(resolve,reject){
+        var connection = mysql.createConnection({     
+            host     : '39.108.58.83',       
+            user     : 'root',              
+            password : '1234',       
+            port: '3306',                   
+            database: 'TJW', 
+        }); 
+        
+        connection.connect();
+        var modSql = 'select contact from dataOfTJW WHERE openId = '+'\"'+openId+'\"';
+        //改
+        connection.query(modSql,function (err, result) {
+        if(err){
+                console.log('[UPDATE ERROR] - ',err.message);
+                return;
+        }        
+        console.log('--------------------------UPDATE----------------------------');
+        console.log('UPDATE affectedRows',result);
+        console.log('-----------------------------------------------------------------\n\n');
+        var a=  JSON.parse(JSON.stringify(result,2))
+        console.log(a)
+        console.log(a[0])
+        console.log(a[0].contact)
+        var b = a[0].contact;
+        resolve(b);
+        });
+        
+        
+        connection.end();
+
+    })
+
+}
