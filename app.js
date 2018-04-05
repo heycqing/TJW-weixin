@@ -6,8 +6,10 @@ var util = require('./lib/util')
 var wechat_file = path.join(__dirname,'./config/wechat_file.txt') 
 var config = {
     wechat:{
-        appID:'wxc42ff5d3aab3d99a',
-        appSecret:'bcfbd3e30806bf84db6908bfbe30994e',
+        appID:'wx9a3b1840b3e9829c',
+        appSecret:'c69ff62cb98387cad5ae92a37e5b69ff',
+        //  appID:'wx2078d70081976fce',
+        // appSecret:'592353212e36c1b104f8258cc4909b45',
         token:'TJWweixin',
         accsee_token_:'',
         // i:0,
@@ -40,5 +42,5 @@ app.use(
 
 
 
-app.listen(1234);
-console.log('正在监1234端口！');
+app.listen(1238);
+console.log('正在监1238端口！');

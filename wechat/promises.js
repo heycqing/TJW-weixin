@@ -358,7 +358,7 @@ exports.random_img = function(sex,openId){
         }); 
         
         connection.connect();
-        var modSql = 'select imgUrl,openId from dataOfTJW WHERE sex = ? ';
+        var modSql = 'select imgUrl,openId,needOpenId from dataOfTJW WHERE sex = ? ';
         var modSqlParams = [sex];
         
         //改
@@ -372,7 +372,7 @@ exports.random_img = function(sex,openId){
         console.log('-----------------------------------------------------------------\n\n');
         var a=  JSON.parse(JSON.stringify(result,2))
         var i = Math.floor(Math.random()*a.length);        
-        if(a[i].openId != openId){
+        if(a[i].openId != openId && a[i].imgUrl ){
             console.log(a[i])
             resolve(a[i]);
         }else{

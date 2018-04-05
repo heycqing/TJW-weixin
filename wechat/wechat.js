@@ -13,6 +13,8 @@ var wechat_file = path.join(__dirname,'../config/wechat_file.txt')
 var rawBody = require('raw-body');
 var util = require('../lib/util');
 var getFrom = require('./promises')
+var getKefu = require('./kefu');
+var getKefu_acc = require('./kefu_get')
 
 
 // get请求access_token的连接；
@@ -356,7 +358,32 @@ module.exports = function(opt){
                 
             }
                 
-            //    提取openid和play作为判断
+        // 测试
+        // if(msg.MsgType == 'text'){
+
+        //     var access_token_0= yield getKefu_acc.toJson(wechat_file);
+
+        //     //     console.log('\n\nasdasdasd:'+access_token_0+'\n\n')
+        //     //  //    var temp = msg.FromUserName;
+     
+        //     //  //    console.log('\ntemp:'+temp)
+     
+        //     //      var data = yield getKefu.getKefuInfo(access_token_0,msg.FromUserName);
+        //     //      console.log('\nkkkk:\n'+data)
+
+        //     var now = new Date().getTime();
+        //     this.status = 200;
+        //     this.type = 'application/xml';
+        //     var back = '听不懂你在说的是什么？';
+        //     this.body = xmlToreply(msg.FromUserName,msg.ToUserName,now,back)
+
+            
+          
+        // }
+
+        // 
+
+        //    提取openid和play作为判断
                var gl =yield getFrom.getOpenIdFromDB(msg.FromUserName);
 
                console.log('\n\n\n'+gl+'\n\n\n');
@@ -366,7 +393,7 @@ module.exports = function(opt){
                var n = yield getFrom.getContentFromDB(msg.FromUserName);
                console.log('\n\n'+n+'\n\n')
 
-        if( playcount === 1 ){
+         if( playcount === 1 ){
             // 判断是否是同一个人，并且提取content内容，
             if( msg.MsgType === 'text' && gl == msg.FromUserName ){
 
@@ -604,26 +631,81 @@ module.exports = function(opt){
                      while(n.length >14 ){
                          n = n.substring(0,n.length-1)
                      }
-
-    
-                    // 发送其他留言,必须要匹配到同一张图片的人；     
-                    var needopenid = yield getFrom.getNeedOpenIdFromDB(msg.FromUserName);                
-                     var back_msg = yield getFrom.random_msg(needopenid);
                      this.status = 200;
                      this.type = 'application/xml';
-                     var back ='\n\n'+'【'+'\n'+back_msg+'\n'+'】'+'\n\n\n'+'对方的自我介绍你也收到了'+'\n'+
-                     '接下来请你发一段展示自己的语音'+'\n'+
-                     '如果不知道说什么，可以跟Ta聊聊'+'\n'+
-                     '\“每日更新话题\”，'+'\n'+
-                     '或者唱一首应景的歌。'+'\n'+
-                     '请注意：'+'\n'+
-                     '1、语音长度需超过X秒，否则将影响系统传输；'+'\n'+
-                     '2、你只有一次上传语音的机会，一旦传错将无法修改。'+'\n'+
-                     '3、收到语音后想继续聊请回复【1】，没兴趣请回复【2】'
-                                   
-                     this.body = xmlToreply(msg.FromUserName,msg.ToUserName,now,back) ;
+                     // 发送其他留言,必须要匹配到同一张图片的人；     
+                    var needopenid = yield getFrom.getNeedOpenIdFromDB(msg.FromUserName);                
+                    var back_msg = yield getFrom.random_msg(needopenid);
                     yield getFrom.insert_content(msg.FromUserName,n);   
                     yield getFrom.insert_msg(msg.FromUserName,msg.Content)
+
+                    if(back_msg === ''|| back_msg === null){
+                        var back ='对象还没发留言，请晚点再来，随时关注公众号！';
+                        this.body = xmlToreply(msg.FromUserName,msg.ToUserName,now,back);
+
+                         // 获取access_token
+                         var access_token_0= yield getKefu_acc.toJson(wechat_file);
+                        
+                         while(n.length >14 ){
+                             n =n.substring(0,n.length-1)
+                         }
+                        
+                        
+                        setTimeout(function(){
+                                
+                                var url = 'https://api.weixin.qq.com/cgi-bin/message/custom/send?access_token='+access_token_0;
+                                // var msgUser = 'oRFFw07pJC1DfxCv7N5oRU0ANePw';
+                                var requestData ={
+                                    touser:msg.FromUserName,
+                                    msgtype:"text",
+                                    "text":{
+                                        "content":'\n\n'+'【'+'\n'+back_msg+'\n'+'】'+'\n\n\n'+'对方的自我介绍你也收到了'+'\n'+
+                                        '接下来请你发一段展示自己的语音'+'\n'+
+                                        '如果不知道说什么，可以跟Ta聊聊'+'\n'+
+                                        '\“每日更新话题\”，'+'\n'+
+                                        '或者唱一首应景的歌。'+'\n'+
+                                        '请注意：'+'\n'+
+                                        '1、语音长度需超过X秒，否则将影响系统传输；'+'\n'+
+                                        '2、你只有一次上传语音的机会，一旦传错将无法修改。'+'\n'+
+                                        '3、收到语音后想继续聊请回复【1】，没兴趣请回复【2】'
+                                    }
+                                    
+                                }
+                                request({
+                                    method: 'Post',
+                                    url: url,
+                                    json:true,
+                                    headers: {
+                                        "content-type": "application/json",
+                                    },
+                                    body: requestData
+                                })
+                                .then(function(response){
+                                    console.log("客服消息是："+response.body.errmsg);
+                                    console.log("客服消息："+response.body.errcode)
+                                    var data = response.body.errmsg;
+                                })
+                            },60000)
+                        
+
+                    }
+                    else if(back_msg){
+                        var back ='\n\n'+'【'+'\n'+back_msg+'\n'+'】'+'\n\n\n'+'对方的自我介绍你也收到了'+'\n'+
+                        '接下来请你发一段展示自己的语音'+'\n'+
+                        '如果不知道说什么，可以跟Ta聊聊'+'\n'+
+                        '\“每日更新话题\”，'+'\n'+
+                        '或者唱一首应景的歌。'+'\n'+
+                        '请注意：'+'\n'+
+                        '1、语音长度需超过X秒，否则将影响系统传输；'+'\n'+
+                        '2、你只有一次上传语音的机会，一旦传错将无法修改。'+'\n'+
+                        '3、收到语音后想继续聊请回复【1】，没兴趣请回复【2】'
+                                      
+                        this.body = xmlToreply(msg.FromUserName,msg.ToUserName,now,back) ;
+                    }
+                    
+                  
+                    
+                  
                                        
                      
 
@@ -779,17 +861,17 @@ module.exports = function(opt){
                     var now = new Date().getTime();
                     this.body = '<xml><ToUserName><![CDATA['+ msg.FromUserName+']]></ToUserName><FromUserName><![CDATA['+ msg.ToUserName+']]></FromUserName><CreateTime><![CDATA['+ now +']]></CreateTime><MsgType>text</MsgType><Content><![CDATA['+back+']]></Content>'+'</xml>'
                         
-                }else if(hi_contact != '' && she_contact == ''){
-                    var back='抱歉，对方未能及时填写报名信息'+'\n'+
-                    '这次的报名并未生效'+'\n'+
-                    '你可以选择明天再来碰碰运气'+'\n'+
-                    '或者点击下方蓝字'+'\n'+
-                    '分享到朋友圈并截图发送至后台'+'\n'+
-                    '你将获得额外一次【邂逅】机会'+'\n'+
-                    '<a href=\"http://www.wusiqing.com/webTest/TJW/TJW-weixin/app.html?'+msg.FromUserName+'\" >有趣的灵魂终将相遇</a>'
-                    var now = new Date().getTime();
-                    this.body = '<xml><ToUserName><![CDATA['+ msg.FromUserName+']]></ToUserName><FromUserName><![CDATA['+ msg.ToUserName+']]></FromUserName><CreateTime><![CDATA['+ now +']]></CreateTime><MsgType>text</MsgType><Content><![CDATA['+back+']]></Content>'+'</xml>'                    
-                }
+                    }else if(hi_contact != '' && she_contact == ''){
+                        var back='抱歉，对方未能及时填写报名信息'+'\n'+
+                        '这次的报名并未生效'+'\n'+
+                        '你可以选择明天再来碰碰运气'+'\n'+
+                        '或者点击下方蓝字'+'\n'+
+                        '分享到朋友圈并截图发送至后台'+'\n'+
+                        '你将获得额外一次【邂逅】机会'+'\n'+
+                        '<a href=\"http://www.wusiqing.com/webTest/TJW/TJW-weixin/app.html?'+msg.FromUserName+'\" >有趣的灵魂终将相遇</a>'
+                        var now = new Date().getTime();
+                        this.body = '<xml><ToUserName><![CDATA['+ msg.FromUserName+']]></ToUserName><FromUserName><![CDATA['+ msg.ToUserName+']]></FromUserName><CreateTime><![CDATA['+ now +']]></CreateTime><MsgType>text</MsgType><Content><![CDATA['+back+']]></Content>'+'</xml>'                    
+                    }
                     n='';
                     yield getFrom.insert_content(msg.FromUserName,n);   
                     yield getFrom.zore_play(msg.FromUserName);   
@@ -817,7 +899,8 @@ module.exports = function(opt){
                              n =n.substring(0,n.length-1)
                          }
                          
-
+                         yield getFrom.insert_content(msg.FromUserName,n);       
+                         yield getFrom.insert_img(msg.FromUserName,msg.PicUrl,msg.MediaId);
                     this.status = 200;
                     this.type = 'application/xml';
                          // 发送图文信息；
@@ -830,19 +913,77 @@ module.exports = function(opt){
                     }else{
                         var a_random = yield getFrom.random_img(sex_j,msg.FromUserName)     
                     }
+                    // 获取图片
                     console.log('a_random:'+a_random)
                     var img_random = a_random.imgUrl;
                     console.log('img_random:'+img_random);
-                    this.body = '<xml><ToUserName>'+msg.FromUserName+'</ToUserName><FromUserName>'+msg.ToUserName+'</FromUserName><CreateTime>'+now+'</CreateTime><MsgType>news</MsgType><ArticleCount>1</ArticleCount>'+'<Articles><item><Title>邂逅实验室(点击可看)</Title> <Description>你的照片已经成功提交到【邂逅实验室】啦，'+'\n'+
-                    '这是我给你找的邂逅对象（只有这一个哦）先看看Ta精心挑选的照片，'+'\n'+
-                    '然后决定是否与Ta进一步沟通，慎重考虑噢，或许这是你们唯一一次认识对方的机会。'+'\n'+
-                    '继续聊 请回复 1，'+'\n'+
-                   '没兴趣 请回复 2。'+'\n'+ '</Description><PicUrl>'+img_random+'</PicUrl><Url>'+img_random+'</Url></item</Articles></xml>';
-                   yield getFrom.insert_needOpenId(a_random.openId,msg.FromUserName)
-                    yield getFrom.insert_content(msg.FromUserName,n);       
-                    yield getFrom.insert_img(msg.FromUserName,msg.PicUrl,msg.MediaId);
-                                   
-                     
+                    // 补全信息
+         
+
+                    // 判断是否图片为空
+                    if(img_random === '' || img_random === null){
+
+                        var back = '对象还没上传图片，请晚点再来';
+                        this.body = xmlToreply(msg.FromUserName,msg.ToUserName,now,back);
+                        // 获取access_token
+                        var access_token_0= yield getKefu_acc.toJson(wechat_file);
+                        
+                         while(n.length >4 ){
+                             n =n.substring(0,n.length-1)
+                         }
+                        
+                        
+                        setTimeout(function(){
+                                
+                                var url = 'https://api.weixin.qq.com/cgi-bin/message/custom/send?access_token='+access_token_0;
+                                // var msgUser = 'oRFFw07pJC1DfxCv7N5oRU0ANePw';
+                                var requestData ={
+                                    touser:msg.FromUserName,
+                                    msgtype:"news",
+                                    news:{
+                                        "articles": [
+                                         {
+                                             "title":"邂逅实验室(点击可看)",
+                                             "description":'你的照片已经成功提交到【邂逅实验室】啦， '+'这是我给你找的邂逅对象（只有这一个哦）先看看Ta精心挑选的照片，'+'\n'+
+                                             '然后决定是否与Ta进一步沟通，慎重考虑噢，或许这是你们唯一一次认识对方的机会。'+'\n'+
+                                             '继续聊 请回复 1，'+'\n'+
+                                             '没兴趣 请回复 2。'+'\n',
+                                             "url":img_random,
+                                             "picurl":img_random
+                                         }
+                                         ]
+                                    }
+                                }
+                                request({
+                                    method: 'Post',
+                                    url: url,
+                                    json:true,
+                                    headers: {
+                                        "content-type": "application/json",
+                                    },
+                                    body: requestData
+                                })
+                                .then(function(response){
+                                    console.log("客服消息是："+response.body.errmsg);
+                                    console.log("客服消息："+response.body.errcode)
+                                    var data = response.body.errmsg;
+                                })
+                            },60000)
+                        
+                    }
+                    else if(img_random){
+
+                        this.body = '<xml><ToUserName>'+msg.FromUserName+'</ToUserName><FromUserName>'+msg.ToUserName+'</FromUserName><CreateTime>'+now+'</CreateTime><MsgType>news</MsgType><ArticleCount>1</ArticleCount>'+'<Articles><item><Title>邂逅实验室(点击可看)</Title> <Description>你的照片已经成功提交到【邂逅实验室】啦，'+'\n'+
+                        '这是我给你找的邂逅对象（只有这一个哦）先看看Ta精心挑选的照片，'+'\n'+
+                        '然后决定是否与Ta进一步沟通，慎重考虑噢，或许这是你们唯一一次认识对方的机会。'+'\n'+
+                        '继续聊 请回复 1，'+'\n'+
+                        '没兴趣 请回复 2。'+'\n'+ '</Description><PicUrl>'+img_random+'</PicUrl><Url>'+img_random+'</Url></item</Articles></xml>';
+                        yield getFrom.insert_needOpenId(a_random.openId,msg.FromUserName)
+                        // yield getFrom.insert_content(msg.FromUserName,n);       
+                        // yield getFrom.insert_img(msg.FromUserName,msg.PicUrl,msg.MediaId);
+
+                    }
+
                      
 
                 }
@@ -856,18 +997,65 @@ module.exports = function(opt){
                     while(n.length >19 ){
                          n =n.substring(0,n.length-1)
                      }
-                    yield getFrom.insert_voiceId(msg.FromUserName,msg.MediaId);
-                    var needopenid = yield getFrom.getNeedOpenIdFromDB(msg.FromUserName);   
 
+                    yield getFrom.insert_voiceId(msg.FromUserName,msg.MediaId);
+                    var needopenid = yield getFrom.getNeedOpenIdFromDB(msg.FromUserName);  
                     var back_msg = yield getFrom.random_voice(needopenid);
-                    this.body = voicetype(msg.FromUserName,msg.ToUserName,now,back_msg);
-                    
                     yield getFrom.insert_content(msg.FromUserName,n);                      
+                    
+                    // 没有上传语音的时候；
+                    if(back_msg === '' || back_msg === null){
+
+                        var back = '对象还没上传语音，请晚点再来';
+                        this.body = xmlToreply(msg.FromUserName,msg.ToUserName,now,back);
+                         var access_token_0= yield getKefu_acc.toJson(wechat_file);
+                        
+                         while(n.length >19 ){
+                             n =n.substring(0,n.length-1)
+                         }
+                        
+                        
+                        setTimeout(function(temp){
+                            var url = 'https://api.weixin.qq.com/cgi-bin/message/custom/send?access_token='+access_token_0;
+                                // var msgUser = 'oRFFw07pJC1DfxCv7N5oRU0ANePw';
+                                var requestData ={
+                                    touser:msg.FromUserName,
+                                    msgtype:"voice",
+                                    voice:
+                                    {
+                                      "media_id":back_msg
+                                    }
+                                
+                                }
+                                request({
+                                    method: 'Post',
+                                    url: url,
+                                    json:true,
+                                    headers: {
+                                        "content-type": "application/json",
+                                    },
+                                    body: requestData
+                                })
+                                .then(function(response){
+                                    console.log("客服消息是："+response.body.errmsg);
+                                    console.log("客服消息："+response.body.errcode)
+                                    var data = response.body.errmsg;
+                                })
+
+                        },60000)
+                    }
+                    else if(back_msg){
+
+                        this.body = voicetype(msg.FromUserName,msg.ToUserName,now,back_msg);
+                        
+                    }
+                    
                      
                 }
 
             }
-            else if(playcount === 0 && msg.Content === '邂逅'){
+
+        else if(playcount === 0 && msg.Content === '邂逅'){
                 var now = new Date().getTime();
                 this.status = 200;
                 this.type = 'application/xml';
@@ -894,7 +1082,7 @@ module.exports = function(opt){
                 console.log("that.body:"+this.body)
             }
 
-                    //    return ;
+    //                 //    return ;
              
            
            
@@ -905,6 +1093,7 @@ module.exports = function(opt){
        }
     
 }
+
 
 
 
