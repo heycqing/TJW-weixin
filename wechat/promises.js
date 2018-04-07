@@ -161,7 +161,7 @@ exports.getNeedOpenIdFromDB = function(openId){
         
         connection.connect();
 
-        var  sql = 'SELECT needOpenId FROM dataOfTJW where openId = '+'\"'+openId+'\"';
+        var  sql = 'SELECT needOpenId,needCount FROM dataOfTJW where openId = '+'\"'+openId+'\"';
         //查
         connection.query(sql,function (err, result) {
                 if(err){
@@ -173,8 +173,40 @@ exports.getNeedOpenIdFromDB = function(openId){
             console.log(result);
             var a=  JSON.parse(JSON.stringify(result,2))
             console.log('------------------------------------------------------------\n\n');  
-            console.log(a[0].needOpenId)
-            resolve(a[0].needOpenId);
+            console.log(a[0])
+            resolve(a[0]);
+        });
+        connection.end()
+
+    })
+}
+// 提取相应needopenid的img
+exports.getimgFromDB = function(openId){
+    return new Promise(function(resolve,reject){
+        var connection = mysql.createConnection({     
+            host     : '39.108.58.83',       
+            user     : 'root',              
+            password : '1234',       
+            port: '3306',                   
+            database: 'TJW', 
+        }); 
+        
+        connection.connect();
+
+        var  sql = 'SELECT imgId FROM dataOfTJW where openId = '+'\"'+openId+'\"';
+        //查
+        connection.query(sql,function (err, result) {
+                if(err){
+                console.log('[SELECT ERROR] - ',err.message);
+                return;
+                }
+        
+            console.log('--------------------------SELECT----------------------------');
+            console.log(result);
+            var a=  JSON.parse(JSON.stringify(result,2))
+            console.log('------------------------------------------------------------\n\n');  
+            console.log(a[0].imgId)
+            resolve(a[0].imgId);
         });
         connection.end()
 
@@ -182,7 +214,7 @@ exports.getNeedOpenIdFromDB = function(openId){
 }
 
 
-// 添加openid;
+// 添加openid,play,needCount
 exports.insert_openID = function(openId){
     return new Promise(function(resolve,reject){
         var connection = mysql.createConnection({     
@@ -196,7 +228,7 @@ exports.insert_openID = function(openId){
         connection.connect();
         var play = 1;
 
-        var  addSql = 'INSERT INTO dataOfTJW(Id,openId,play) VALUES(0,?,?)';
+        var  addSql = 'INSERT INTO dataOfTJW(Id,openId,play,needCount) VALUES(0,?,?,1)';
         var  addSqlParams = [openId,play];
         //增
         connection.query(addSql,addSqlParams,function (err, result) {
@@ -328,8 +360,8 @@ exports.insert_needOpenId = function(needopenId,openId){
         }); 
         
         connection.connect();
-        var modSql = 'UPDATE dataOfTJW SET needOpenId = ? WHERE openId = ?';
-        var modSqlParams = [needopenId,openId];
+        var modSql = 'UPDATE dataOfTJW SET needOpenId = ?,needCount=? WHERE openId = ?';
+        var modSqlParams = [needopenId,0,openId];
         //改
         connection.query(modSql,modSqlParams,function (err, result) {
         if(err){
@@ -358,7 +390,7 @@ exports.random_img = function(sex,openId){
         }); 
         
         connection.connect();
-        var modSql = 'select imgUrl,openId,needOpenId from dataOfTJW WHERE sex = ? ';
+        var modSql = 'select imgId,openId,needOpenId,needCount from dataOfTJW WHERE sex = ? ';
         var modSqlParams = [sex];
         
         //改
@@ -371,18 +403,14 @@ exports.random_img = function(sex,openId){
         console.log('UPDATE affectedRows',result.affectedRows);
         console.log('-----------------------------------------------------------------\n\n');
         var a=  JSON.parse(JSON.stringify(result,2))
-        var i = Math.floor(Math.random()*a.length);        
-        if(a[i].openId != openId && a[i].imgUrl ){
-            console.log(a[i])
-            resolve(a[i]);
-        }else{
-            if(i-1 < 0){
-                console.log(a[i])              
-                resolve(a[i])
-            }else{
-                console.log(a[i-1])      
-                resolve(a[i-1])
-            }
+        var i = Math.floor(Math.random()*a.length);  
+        if(a[i].openId != openId && a[i].imgId ){
+            var now  = new Date().getTime();
+           var b =findNeedCount(a,now);
+
+            console.log(b)
+            resolve(b);
+           
         }
         
 
@@ -394,6 +422,22 @@ exports.random_img = function(sex,openId){
     })
 
 }
+function findNeedCount(arr,now){
+    for (var i=0;i<arr.length;i = Math.floor(Math.random()*arr.length)){
+        var here = new Date().getTime();
+        if((here - now)>1400){
+            ar ={imgId:'',openId:'none',needCount:0,needopenId:''}
+            return ar;
+        }else{
+            if(arr[i].needCount == 1){
+                return arr[i];
+            }
+        }
+        
+    }
+    return -1;
+}
+
 // 提取语音
 exports.random_voice = function(needopenId){
     return new Promise(function(resolve,reject){
@@ -641,7 +685,7 @@ exports.insert_contact = function(contact,openId){
         }); 
         
         connection.connect();
-        var modSql = 'UPDATE dataOfTJW SET contact = ? WHERE openId = ?';
+        var modSql = 'UPDATE dataOfTJW SET contact_ = ? WHERE openId = ?';
         var modSqlParams = [contact,openId];
         //改
         connection.query(modSql,modSqlParams,function (err, result) {
@@ -673,11 +717,11 @@ exports.getContactFromDB = function(openId){
         }); 
         
         connection.connect();
-        var modSql = 'select contact from dataOfTJW WHERE openId = '+'\"'+openId+'\"';
+        var modSql = 'select contact_ from dataOfTJW WHERE openId = '+'\"'+openId+'\"';
         //改
         connection.query(modSql,function (err, result) {
         if(err){
-                console.log('[UPDATE ERROR] - ',err.message);
+                console.log('[ ERROR] - ',err.message);
                 return;
         }        
         console.log('--------------------------UPDATE----------------------------');
@@ -686,9 +730,15 @@ exports.getContactFromDB = function(openId){
         var a=  JSON.parse(JSON.stringify(result,2))
         console.log(a)
         console.log(a[0])
-        console.log(a[0].contact)
-        var b = a[0].contact;
-        resolve(b);
+        if(a[0] == ''||a[0] ==null){
+            var b ='';
+            resolve(b);
+        }else{
+            console.log(a[0].contact_)
+            var b = a[0].contact_;
+            resolve(b);
+        }
+       
         });
         
         

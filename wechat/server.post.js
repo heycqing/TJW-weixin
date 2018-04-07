@@ -27,7 +27,7 @@ var app = express();
     }); 
 
     connection.connect();
-    var modSql = 'UPDATE dataOfTJW SET play = 1 WHERE openId = '+str_json;
+    var modSql = 'UPDATE dataOfTJW SET play = 1,needCount =1 WHERE openId = '+str_json;
     // var modSqlParams = [str_json];
     // console.log(modSqlParams)
     console.log(modSql+str_json)
