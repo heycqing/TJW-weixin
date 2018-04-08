@@ -82,7 +82,87 @@ function findit(arr,val){
      }) 
 
 }
+// 根据sex提取openid
+exports.getOpenIdBySex = function(sex,openId){
+    return new Promise(function(resolve,reject){
+        var connection = mysql.createConnection({     
+            host     : '39.108.58.83',       
+            user     : 'root',              
+            password : '1234',       
+            port: '3306',                   
+            database: 'TJW', 
+        }); 
+        
+        connection.connect();
 
+        var  sql = 'SELECT openId,needCount FROM dataOfTJW where sex ='+'\"'+sex+'\"';
+        //查
+        connection.query(sql,function (err, result) {
+                if(err){
+                console.log('[SELECT ERROR] - ',err.message);
+                return;
+                }
+        
+            console.log('--------------------------SELECT----------------------------');
+            console.log(result);
+            var a=  JSON.parse(JSON.stringify(result,2))
+            console.log('------------------------------------------------------------\n\n');  
+            console.log("a[0]:"+a[0])
+            console.log("a[0]:"+(a[0] ==undefined))
+            // console.log("a[0]:"+a[0].hasOwnProperty('openId'))
+            // console.log("a[0]:"+openId in a[0])
+            
+            
+            
+            var i = Math.floor(Math.random()*a.length); 
+            console.log('i'+i)
+            console.log("a[i]:"+a[i]);
+            
+            
+            // console.log("a[i]:"+a[i].openId ===undefined)
+            // console.log("a[i]:"+a[i].hasOwnProperty('openId'))
+            // if(sex === 'A' || sex==='D'){
+            //     if(i==0||a[0].hasOwnProperty('openId')){
+            //         var c = 'none';
+            //         resolve(c);
+            //         return
+            //     }
+            // }
+            // else if((a[i]==undefined)){
+            //     var c = 'none';
+            //     resolve(c);
+            //     return
+            // }else {
+            //     if(a[i].openId != openId){
+            //     var now = new Date().getTime();
+            //     var seccessId = findNeedCountBySex(a,now)
+            //     resolve(seccessId);
+            //     }
+            // }
+        });
+        connection.end()
+
+    })
+}
+function findNeedCountBySex(arr){
+    var cout = 0;
+    while(cout <5){
+        for (var i=0;i<arr.length;i = Math.floor(Math.random()*arr.length)){
+            // var here = new Date().getTime();
+            // if((here - now)>1500){
+            //     ar  ='none'
+            //     return ar;
+            // }else{
+                if(arr[i].needCount == 1){
+                    return arr[i];
+                // }
+            }
+            cout++;
+        }
+    }
+    
+    return -1;
+}
 // 提取play
 exports.getPlayFromDB = function(openId){
     return new Promise(function(resolve,reject){
@@ -161,7 +241,7 @@ exports.getNeedOpenIdFromDB = function(openId){
         
         connection.connect();
 
-        var  sql = 'SELECT needOpenId,needCount FROM dataOfTJW where openId = '+'\"'+openId+'\"';
+        var  sql = 'SELECT needOpenId FROM dataOfTJW where openId = '+'\"'+openId+'\"';
         //查
         connection.query(sql,function (err, result) {
                 if(err){
@@ -173,8 +253,8 @@ exports.getNeedOpenIdFromDB = function(openId){
             console.log(result);
             var a=  JSON.parse(JSON.stringify(result,2))
             console.log('------------------------------------------------------------\n\n');  
-            console.log(a[0])
-            resolve(a[0]);
+            console.log(a[0].needOpenId)
+            resolve(a[0].needOpenId);
         });
         connection.end()
 
@@ -205,8 +285,13 @@ exports.getimgFromDB = function(openId){
             console.log(result);
             var a=  JSON.parse(JSON.stringify(result,2))
             console.log('------------------------------------------------------------\n\n');  
-            console.log(a[0].imgId)
+            console.log(a[0])
+            if(a[0]==''||a[0]==null)
+            resolve(a[0]);
+            else{
             resolve(a[0].imgId);
+                
+            }
         });
         connection.end()
 
@@ -360,8 +445,8 @@ exports.insert_needOpenId = function(needopenId,openId){
         }); 
         
         connection.connect();
-        var modSql = 'UPDATE dataOfTJW SET needOpenId = ?,needCount=? WHERE openId = ?';
-        var modSqlParams = [needopenId,0,openId];
+        var modSql = 'UPDATE dataOfTJW SET needOpenId = ? WHERE openId = ?';
+        var modSqlParams = [needopenId,openId];
         //改
         connection.query(modSql,modSqlParams,function (err, result) {
         if(err){
@@ -405,11 +490,11 @@ exports.random_img = function(sex,openId){
         var a=  JSON.parse(JSON.stringify(result,2))
         var i = Math.floor(Math.random()*a.length);  
         if(a[i].openId != openId && a[i].imgId ){
-            var now  = new Date().getTime();
-           var b =findNeedCount(a,now);
+        //     var now  = new Date().getTime();
+        //    var b =findNeedCount(a,now);
 
-            console.log(b)
-            resolve(b);
+            // console.log(b)
+            resolve(a[i]);
            
         }
         
@@ -729,11 +814,17 @@ exports.getContactFromDB = function(openId){
         console.log('-----------------------------------------------------------------\n\n');
         var a=  JSON.parse(JSON.stringify(result,2))
         console.log(a)
-        console.log(a[0])
-        if(a[0] == ''||a[0] ==null){
+        console.log("\n\n\nhhhhhh\n"+(a[0].contact_ === undefined))
+        console.log("\n\n\nhhhhhh\n"+(a[0].contact_ === null))
+        
+        if(a[0]===undefined){
             var b ='';
             resolve(b);
-        }else{
+        }else if((a[0].contact_ === null)){
+            var b ='';
+            resolve(b);
+        }
+        else{
             console.log(a[0].contact_)
             var b = a[0].contact_;
             resolve(b);
