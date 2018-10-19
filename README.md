@@ -67,7 +67,7 @@
         + 2.2.1 `nginx` 配置文件路径:
             <br>
             一般情况下：
-            ``` /etc/nginx/nginx.conf ``
+            ` /etc/nginx/nginx.conf `
         + 2.2.2 `nginx` 配置文件修改：   
         ```js
             server {
