@@ -10,6 +10,16 @@
 
 **流程图主要分为3步**
 
+```flow
+
+s=start:开始
+e=end:结束
+o=operation:操作项
+
+s-o-e
+```
+
+
 
 
 [具体参考微信公众号开发文档](https://mp.weixin.qq.com/wiki?t=resource/res_main&id=mp1445241432)
