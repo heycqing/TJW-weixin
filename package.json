@@ -1,0 +1,22 @@
+{
+  "name": "tjw-weixin",
+  "version": "1.0.0",
+  "description": "asd",
+  "main": "app.js",
+  "directories": {
+    "lib": "lib"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/heycqing/TJW-weixin.git"
+  },
+  "author": "cqing",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/heycqing/TJW-weixin/issues"
+  },
+  "homepage": "https://github.com/heycqing/TJW-weixin#readme"
+}

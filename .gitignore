@@ -1,0 +1,18 @@
+# OSX
+#
+.DS_Store
+
+# vs
+#
+.vscode
+
+# node.js
+#
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# 自建目录
+#
+mock.data/**/*.js
+mock.router/**/*.js
