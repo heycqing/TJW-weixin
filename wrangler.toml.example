@@ -1,0 +1,13 @@
+name = "tjw-weixin-poc"
+main = "src/worker.js"
+compatibility_date = "2026-05-20"
+
+# Copy this file to wrangler.toml and replace the route with your own domain.
+# Do not commit wrangler.toml if it contains account-specific production data.
+#
+# routes = [
+#   { pattern = "wx.example.com", custom_domain = true }
+# ]
+#
+# The WeChat server URL should still include the Worker path:
+# https://wx.example.com/wechat

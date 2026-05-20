@@ -2,6 +2,7 @@ var express = require('express');
 var bodyParser = require('body-parser');
 var fs = require('fs');
 var mysql = require('mysql')
+var dbConfig = require('../config/env').mysql;
  
 var app = express();
  
@@ -18,13 +19,7 @@ var app = express();
     // var a=  JSON.parse(JSON.stringify(req.body,2))
     
     console.log('str:'+str_json)
-    var connection = mysql.createConnection({     
-        host     : '39.108.58.83',       
-        user     : 'root',              
-        password : '1234',       
-        port: '3306',                   
-        database: 'TJW', 
-    }); 
+    var connection = mysql.createConnection(dbConfig); 
 
     connection.connect();
     var modSql = 'UPDATE dataOfTJW SET play = 1,needCount =1 WHERE openId = '+str_json;

@@ -1,12 +1,7 @@
 var mysql  = require('mysql');  
+var dbConfig = require('../config/env').mysql;
  
-var connection = mysql.createConnection({     
-    host: '39.108.58.83',
-    user: 'root',
-    password: '1234',
-    port: '3306',
-    database: 'TJW',
-}); 
+var connection = mysql.createConnection(dbConfig); 
  
 connection.connect();
 function date2str(x, y) {

@@ -6,6 +6,7 @@ var fs = require('fs');
 var path = require('path')
 // 连接数据库并将数据输入数据库
 var mysql  = require('mysql');  
+var dbConfig = require('../config/env').mysql;
 
 var wechat_file = path.join(__dirname,'../config/wechat_file.txt') 
 // var picUrl = path.join(__dirname,'../public/1.jpeg')
@@ -458,13 +459,7 @@ function voicetype(a,b,c,d){
 
 // 连接数据库
 function chaxun_(sql,temp_picUrl){
-    var connection = mysql.createConnection({     
-        host: '39.108.58.83',
-        user: 'root',
-        password: '1234',
-        port: '3306',
-        database: 'TJW',
-    }); 
+    var connection = mysql.createConnection(dbConfig); 
      
     connection.connect();
     connection.query(sql,function (err, result) {

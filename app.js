@@ -3,14 +3,13 @@ var Koa = require('koa');
 var path = require('path');
 var wechat = require('./wechat/wechat');
 var util = require('./lib/util')
+var env = require('./config/env')
 var wechat_file = path.join(__dirname,'./config/wechat_file.txt') 
 var config = {
     wechat:{
-        appID:'wx9a3b1840b3e9829c',
-        appSecret:'c69ff62cb98387cad5ae92a37e5b69ff',
-        //  appID:'wx2078d70081976fce',
-        // appSecret:'592353212e36c1b104f8258cc4909b45',
-        token:'TJWweixin',
+        appID: env.wechat.appID,
+        appSecret: env.wechat.appSecret,
+        token: env.wechat.token,
         accsee_token_:'',
         // i:0,
         getAccessToken : function(){
@@ -42,5 +41,5 @@ app.use(
 
 
 
-app.listen(1446);
-console.log('正在监1446端口！');
+app.listen(env.legacyServer.port);
+console.log('legacy wechat server listening on port ' + env.legacyServer.port);

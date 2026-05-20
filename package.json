@@ -1,13 +1,15 @@
 {
   "name": "tjw-weixin",
   "version": "1.0.0",
-  "description": "asd",
+  "description": "WeChat Official Account callback POC for Cloudflare Workers",
   "main": "app.js",
   "directories": {
     "lib": "lib"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "wrangler dev src/worker.js",
+    "deploy": "wrangler deploy src/worker.js --name tjw-weixin-poc --compatibility-date 2026-05-20",
+    "test": "vitest run test/worker.test.js"
   },
   "repository": {
     "type": "git",
@@ -15,8 +17,15 @@
   },
   "author": "cqing",
   "license": "ISC",
+  "devDependencies": {
+    "vitest": "^3.2.4",
+    "wrangler": "^4.19.1"
+  },
   "bugs": {
     "url": "https://github.com/heycqing/TJW-weixin/issues"
   },
-  "homepage": "https://github.com/heycqing/TJW-weixin#readme"
+  "homepage": "https://github.com/heycqing/TJW-weixin#readme",
+  "dependencies": {
+    "dotenv": "^17.4.2"
+  }
 }

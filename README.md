@@ -1,96 +1,131 @@
-## 🎮 nodeJs开发微信公众号
+# TJW Weixin
 
-### 目录
- 1. [微信公众号后台开发原理](#微信公众号开发原理)
- 9. [如何运行线上和测试环境](#运行环境)
- 10. [版本变迁](#版本变迁)
+这是一个早期的微信公众号后台项目。当前第一阶段不是迁移完整业务，而是验证：
 
+> 微信公众号后台是否可以稳定访问 Cloudflare Worker 自定义域名。
 
-### 微信公众号后台开发原理
+POC 只实现 `/wechat`：
 
-**流程图主要分为3步**
+- `GET /wechat`：按微信公众号规则校验 `signature/timestamp/nonce`，成功后返回 `echostr`。
+- `POST /wechat`：校验签名后解析微信 XML，并返回一段简单 XML 文本，证明消息回调可达。
 
-1. 第一步：填写服务器配置
-2. 第二步：验证消息的确来自微信服务器
-3. 第三步：根据业务逻辑选择接口编写代码
+旧的 Koa/MySQL 业务代码暂时保留，后续验证通过后再迁移状态机和数据层。
 
-> 这里我会分装好第二步，主要是确认消息是来自微信服务器;<br>
-> 关键是验证消息，只要验证消息通过，下面的业务处理就简单了;<br>
-> 同时还需要保证每两个小时更新一下验证消息。
+## 本地准备
 
-第二步的具体流程:
+安装依赖：
 
-1. 将 `token、timestamp、nonce` 三个参数进行字典序排序;
-2. 将三个参数字符串拼接成一个字符串进行`sha1`加密;
-3. 开发者获得加密后的字符串可与 `signature` 对比，标识该请求来源于微信;
+```bash
+npm install
+```
 
-**注意事项：**
-1. 请求使用 `get` 方法；
+配置本地密钥：
 
+```bash
+copy .env.example .env
+copy .dev.vars.example .dev.vars
+```
 
+`.env` 用于旧 Node/Koa 代码，`.dev.vars` 用于 `wrangler dev` 本地运行 Cloudflare Worker。当前 POC 只需要 `WECHAT_TOKEN`；`WECHAT_APP_ID` 和 `WECHAT_APP_SECRET` 是为后续调用微信接口预留的。
 
+把下面三项替换成你自己的微信公众号后台配置：
 
-[具体参考微信公众号开发文档](https://mp.weixin.qq.com/wiki?t=resource/res_main&id=mp1445241432)
+```text
+WECHAT_APP_ID=你的公众号 AppID
+WECHAT_APP_SECRET=你的公众号 AppSecret
+WECHAT_TOKEN=你在微信后台服务器配置里填写的 Token
+```
 
-### 运行环境
+如果还要运行旧 MySQL 业务代码，也需要在 `.env` 里填写 `MYSQL_HOST`、`MYSQL_USER`、`MYSQL_PASSWORD`、`MYSQL_DATABASE`。这些真实配置文件已被 `.gitignore` 忽略，不要提交到仓库。
 
-> 分别是线上和测试环境
+运行测试：
 
-1. **在测试环境运行，可以通过localtunnel来进行外网映射**
- 
-    + 1.1 安装**localtunnel**
+```bash
+npm test
+```
 
-    ```npm install -g localtunnel ```
-    
-    + 1.2 启动服务
+本地启动 Worker：
 
-        - 1.2.1 在根目录启动 `app.js `
+```bash
+npm run dev
+```
 
-            ``` node app.js ```
+本地模拟微信 GET 验证时，需要按 `token/timestamp/nonce` 生成 SHA-1 签名。测试里使用的固定值是：
 
-        + 1.2.2 然后，启动 映射服务 
+- `token`: `test-token`
+- `timestamp`: `1523204100`
+- `nonce`: `abc123`
+- `signature`: `57010dd0485727a0ffb6f989b4a32b49cdde38ca`
 
-            ```lt --port 5544(端口号) ```
+示例：
 
-        + 1.2.3 在微信测试号配置好 **链接**
+```bash
+curl "http://127.0.0.1:8787/wechat?signature=57010dd0485727a0ffb6f989b4a32b49cdde38ca&timestamp=1523204100&nonce=abc123&echostr=hello-worker"
+```
 
-    + 1.3 进入测试公众号进行测试；
-    
+如果返回 `hello-worker`，说明验签逻辑正常。
 
-2. **如何正确部署线上环境？**
+## Cloudflare 部署验证
 
-    对于 `nodeJs` 来讲想要对 `微信公众号` 进行开发，只能监听 `80端口或者433端口`，但是 `node应用` 监听 `80端口` 的话，服务器只能监听其他端口，可能会导致一些其他的问题，为了避免这些问题和解决单用`测试环境`的做法所导致链接不稳定问题，这里推荐解决办法是： **使用nginx为node应用做反向代理**
+1. 登录 Cloudflare，并准备一个已接入 Cloudflare DNS 的域名。
+2. 复制示例配置：
 
-    > 做法：
-    + 2.1 服务器必须是： `nginx`;
-    + 2.2 对 `nginx` 的配置文件做修：
-        + 2.2.1 `nginx` 配置文件路径:
-            <br>
-            一般情况下：
-            ` /etc/nginx/nginx.conf `
-        + 2.2.2 `nginx` 配置文件修改：   
-        ```js
-            server {
-                listen   3000(端口号);    
-     
-                location / {
-                    proxy_pass 代理网址;
-                }
+```bash
+copy wrangler.toml.example wrangler.toml
+```
 
-            }
-        ```
+3. 修改 `wrangler.toml`，把示例域名替换成自己的域名。`custom_domain` 绑定 hostname，不带 `/wechat` 路径；路径由 Worker 内部判断，例如：
 
+```toml
+routes = [
+  { pattern = "wx.example.com", custom_domain = true }
+]
+```
 
-### 版本变迁
-1. V 1.0.0 
-    + 是一个具体的项目，但是代码不够简洁；
-    + 链接不稳定；
-    + 没有定时获取`access_token`,获取函数失效；
-    + 没用的代码文件过于繁杂；
+4. 设置微信公众号 Token。Token 必须和微信后台填写的 Token 完全一致：
 
-2. V 1.1.0 
-    + 精简代码；
-    + 使用反向代理稳定链接；
-    + 定时获取`access_token`；
-    + 删除整理没用代码；
+```bash
+npx wrangler secret put WECHAT_TOKEN
+```
 
+如果后续 Worker 需要调用微信接口获取 `access_token`，再继续设置：
+
+```bash
+npx wrangler secret put WECHAT_APP_ID
+npx wrangler secret put WECHAT_APP_SECRET
+```
+
+5. 部署：
+
+```bash
+npm run deploy
+```
+
+6. 在微信公众号后台的“服务器配置”里填写：
+
+```text
+URL: https://wx.example.com/wechat
+Token: 与 WECHAT_TOKEN 相同
+EncodingAESKey: 可随机生成
+消息加解密方式: 明文模式
+```
+
+7. 点击提交/验证。成功标准：
+
+- 微信后台验证通过。
+- Cloudflare Worker logs 能看到微信发来的 GET 请求。
+- 没有 403、证书错误或超时。
+
+## 失败回退方案
+
+如果微信后台无法稳定访问 Cloudflare Worker 自定义域名，保留两条低成本回退路线：
+
+- 国内轻量云服务器 + Nginx + PM2：最接近旧部署方式，稳定性可控。
+- 国内云函数/Serverless：保留按量付费和低运维优势，但需要重新适配函数入口。
+
+验证通过后，下一阶段再做完整迁移：
+
+- 用 D1 替代旧 MySQL。
+- 整理微信交互状态机。
+- 修复并发匹配问题。
+- 移除源码里的微信密钥和数据库密码。

@@ -1,13 +1,8 @@
 var mysql = require('mysql')
+var dbConfig = require('../config/env').mysql;
 exports.getOpenIdFromDB = function(needToFind){
     return new Promise(function(resolve,reject){
-        var connection = mysql.createConnection({     
-            host     : '39.108.58.83',       
-            user     : 'root',              
-            password : '1234',       
-            port: '3306',                   
-            database: 'TJW', 
-        }); 
+        var connection = mysql.createConnection(dbConfig); 
         
         connection.connect();
 
@@ -46,13 +41,7 @@ function findit(arr,val){
  exports.getContentFromDB = function(openId){
      return new Promise(function(resolve,reject){
 
-        var connection = mysql.createConnection({     
-            host     : '39.108.58.83',       
-            user     : 'root',              
-            password : '1234',       
-            port: '3306',                   
-            database: 'TJW', 
-        }); 
+        var connection = mysql.createConnection(dbConfig); 
         
         connection.connect();
 
@@ -85,13 +74,7 @@ function findit(arr,val){
 // 根据sex提取openid
 exports.getOpenIdBySex = function(sex,openId){
     return new Promise(function(resolve,reject){
-        var connection = mysql.createConnection({     
-            host     : '39.108.58.83',       
-            user     : 'root',              
-            password : '1234',       
-            port: '3306',                   
-            database: 'TJW', 
-        }); 
+        var connection = mysql.createConnection(dbConfig); 
         
         connection.connect();
 
@@ -166,13 +149,7 @@ function findNeedCountBySex(arr){
 // 提取play
 exports.getPlayFromDB = function(openId){
     return new Promise(function(resolve,reject){
-        var connection = mysql.createConnection({     
-            host     : '39.108.58.83',       
-            user     : 'root',              
-            password : '1234',       
-            port: '3306',                   
-            database: 'TJW', 
-        }); 
+        var connection = mysql.createConnection(dbConfig); 
         
         connection.connect();
 
@@ -198,13 +175,7 @@ exports.getPlayFromDB = function(openId){
 // 提取sex
 exports.getSexFromDB = function(openId){
     return new Promise(function(resolve,reject){
-        var connection = mysql.createConnection({     
-            host     : '39.108.58.83',       
-            user     : 'root',              
-            password : '1234',       
-            port: '3306',                   
-            database: 'TJW', 
-        }); 
+        var connection = mysql.createConnection(dbConfig); 
         
         connection.connect();
 
@@ -231,13 +202,7 @@ exports.getSexFromDB = function(openId){
 exports.getNeedOpenIdFromDB = function(openId){
 
     return new Promise(function(resolve,reject){
-        var connection = mysql.createConnection({     
-            host     : '39.108.58.83',       
-            user     : 'root',              
-            password : '1234',       
-            port: '3306',                   
-            database: 'TJW', 
-        }); 
+        var connection = mysql.createConnection(dbConfig); 
         
         connection.connect();
 
@@ -263,13 +228,7 @@ exports.getNeedOpenIdFromDB = function(openId){
 // 提取相应needopenid的img
 exports.getimgFromDB = function(openId){
     return new Promise(function(resolve,reject){
-        var connection = mysql.createConnection({     
-            host     : '39.108.58.83',       
-            user     : 'root',              
-            password : '1234',       
-            port: '3306',                   
-            database: 'TJW', 
-        }); 
+        var connection = mysql.createConnection(dbConfig); 
         
         connection.connect();
 
@@ -302,13 +261,7 @@ exports.getimgFromDB = function(openId){
 // 添加openid,play,needCount
 exports.insert_openID = function(openId){
     return new Promise(function(resolve,reject){
-        var connection = mysql.createConnection({     
-            host     : '39.108.58.83',       
-            user     : 'root',              
-            password : '1234',       
-            port: '3306',                   
-            database: 'TJW', 
-        }); 
+        var connection = mysql.createConnection(dbConfig); 
         
         connection.connect();
         var play = 1;
@@ -338,13 +291,7 @@ exports.insert_openID = function(openId){
 exports.insert_content= function(openId,content){
 
     return new Promise(function(resolve,reject){
-        var connection = mysql.createConnection({     
-            host     : '39.108.58.83',       
-            user     : 'root',              
-            password : '1234',       
-            port: '3306',                   
-            database: 'TJW', 
-        }); 
+        var connection = mysql.createConnection(dbConfig); 
         
         connection.connect();
         var modSql = 'UPDATE dataOfTJW SET content = ? WHERE openId = ?';
@@ -372,13 +319,7 @@ exports.insert_sex = function(sex,openId){
 
     return new Promise(function(resolve,reject){
           // 建立数据库长链接；
-          var connection = mysql.createConnection({     
-            host     : '39.108.58.83',       
-            user     : 'root',              
-            password : '1234',       
-            port: '3306',                   
-            database: 'TJW', 
-        }); 
+          var connection = mysql.createConnection(dbConfig); 
         
         connection.connect();
         var modSql = 'UPDATE dataOfTJW SET sex = ? WHERE openId = ?';
@@ -406,13 +347,7 @@ exports.insert_sex = function(sex,openId){
 exports.insert_img = function(openId,imgUrl,imgId){
 
     return new Promise(function(resolve,reject){
-        var connection = mysql.createConnection({     
-            host     : '39.108.58.83',       
-            user     : 'root',              
-            password : '1234',       
-            port: '3306',                   
-            database: 'TJW', 
-        }); 
+        var connection = mysql.createConnection(dbConfig); 
         
         connection.connect();
         var modSql = 'UPDATE dataOfTJW SET imgUrl = ?,imgId = ? WHERE openId = ?';
@@ -436,13 +371,7 @@ exports.insert_img = function(openId,imgUrl,imgId){
 // 添加needOpenId
 exports.insert_needOpenId = function(needopenId,openId){
     return new Promise(function(resolve,reject){
-        var connection = mysql.createConnection({     
-            host     : '39.108.58.83',       
-            user     : 'root',              
-            password : '1234',       
-            port: '3306',                   
-            database: 'TJW', 
-        }); 
+        var connection = mysql.createConnection(dbConfig); 
         
         connection.connect();
         var modSql = 'UPDATE dataOfTJW SET needOpenId = ? WHERE openId = ?';
@@ -466,13 +395,7 @@ exports.insert_needOpenId = function(needopenId,openId){
 exports.random_img = function(sex,openId){
     return new Promise(function(resolve,reject){
         // 建立数据库长链接；
-        var connection = mysql.createConnection({     
-            host     : '39.108.58.83',       
-            user     : 'root',              
-            password : '1234',       
-            port: '3306',                   
-            database: 'TJW', 
-        }); 
+        var connection = mysql.createConnection(dbConfig); 
         
         connection.connect();
         var modSql = 'select imgId,openId,needOpenId,needCount from dataOfTJW WHERE sex = ? ';
@@ -527,13 +450,7 @@ function findNeedCount(arr,now){
 exports.random_voice = function(needopenId){
     return new Promise(function(resolve,reject){
         // 建立数据库长链接；
-        var connection = mysql.createConnection({     
-            host     : '39.108.58.83',       
-            user     : 'root',              
-            password : '1234',       
-            port: '3306',                   
-            database: 'TJW', 
-        }); 
+        var connection = mysql.createConnection(dbConfig); 
         
         connection.connect();
         var modSql = 'select voiceId from dataOfTJW WHERE openId = ? ';
@@ -561,13 +478,7 @@ exports.random_voice = function(needopenId){
 exports.random_msg = function(needopenId){
     return new Promise(function(resolve,reject){
         // 建立数据库长链接；
-        var connection = mysql.createConnection({     
-            host     : '39.108.58.83',       
-            user     : 'root',              
-            password : '1234',       
-            port: '3306',                   
-            database: 'TJW', 
-        }); 
+        var connection = mysql.createConnection(dbConfig); 
         
         connection.connect();
         var modSql = 'select msg from dataOfTJW WHERE openId = ? ';
@@ -595,13 +506,7 @@ exports.random_msg = function(needopenId){
 exports.random_msg_nd = function(needopenId){
     return new Promise(function(resolve,reject){
         // 建立数据库长链接；
-        var connection = mysql.createConnection({     
-            host     : '39.108.58.83',       
-            user     : 'root',              
-            password : '1234',       
-            port: '3306',                   
-            database: 'TJW', 
-        }); 
+        var connection = mysql.createConnection(dbConfig); 
         
         connection.connect();
         var modSql = 'select msg_nd from dataOfTJW WHERE openId = ? ';
@@ -630,13 +535,7 @@ exports.random_msg_nd = function(needopenId){
 exports.insert_voiceId = function(openId,voiceId){
 
     return new Promise(function(resolve,reject){
-        var connection = mysql.createConnection({     
-            host     : '39.108.58.83',       
-            user     : 'root',              
-            password : '1234',       
-            port: '3306',                   
-            database: 'TJW', 
-        }); 
+        var connection = mysql.createConnection(dbConfig); 
         
         connection.connect();
         var modSql = 'UPDATE dataOfTJW SET voiceId = ? WHERE openId = ?';
@@ -662,13 +561,7 @@ exports.insert_voiceId = function(openId,voiceId){
 exports.insert_msg = function(openId,msg){
 
     return new Promise(function(resolve,reject){
-        var connection = mysql.createConnection({     
-            host     : '39.108.58.83',       
-            user     : 'root',              
-            password : '1234',       
-            port: '3306',                   
-            database: 'TJW', 
-        }); 
+        var connection = mysql.createConnection(dbConfig); 
         
         connection.connect();
         var modSql = 'UPDATE dataOfTJW SET msg = ? WHERE openId = ?';
@@ -695,13 +588,7 @@ exports.insert_msg = function(openId,msg){
 exports.insert_msg_nd = function(openId,msg_nd){
 
     return new Promise(function(resolve,reject){
-        var connection = mysql.createConnection({     
-            host     : '39.108.58.83',       
-            user     : 'root',              
-            password : '1234',       
-            port: '3306',                   
-            database: 'TJW', 
-        }); 
+        var connection = mysql.createConnection(dbConfig); 
         
         connection.connect();
         var modSql = 'UPDATE dataOfTJW SET msg_nd = ? WHERE openId = ?';
@@ -729,13 +616,7 @@ exports.insert_msg_nd = function(openId,msg_nd){
 exports.zore_play = function(openId){
 
     return new Promise(function(resolve,reject){
-        var connection = mysql.createConnection({     
-            host     : '39.108.58.83',       
-            user     : 'root',              
-            password : '1234',       
-            port: '3306',                   
-            database: 'TJW', 
-        }); 
+        var connection = mysql.createConnection(dbConfig); 
         
         connection.connect();
         var modSql = 'UPDATE dataOfTJW SET play = ?,needOpenId=? WHERE openId = ?';
@@ -761,13 +642,7 @@ exports.zore_play = function(openId){
 // 添加姓名和手机号码
 exports.insert_contact = function(contact,openId){
     return new Promise(function(resolve,reject){
-        var connection = mysql.createConnection({     
-            host     : '39.108.58.83',       
-            user     : 'root',              
-            password : '1234',       
-            port: '3306',                   
-            database: 'TJW', 
-        }); 
+        var connection = mysql.createConnection(dbConfig); 
         
         connection.connect();
         var modSql = 'UPDATE dataOfTJW SET contact_ = ? WHERE openId = ?';
@@ -793,13 +668,7 @@ exports.insert_contact = function(contact,openId){
 // 提取获取手机号码；
 exports.getContactFromDB = function(openId){
     return new Promise(function(resolve,reject){
-        var connection = mysql.createConnection({     
-            host     : '39.108.58.83',       
-            user     : 'root',              
-            password : '1234',       
-            port: '3306',                   
-            database: 'TJW', 
-        }); 
+        var connection = mysql.createConnection(dbConfig); 
         
         connection.connect();
         var modSql = 'select contact_ from dataOfTJW WHERE openId = '+'\"'+openId+'\"';
