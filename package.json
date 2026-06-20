@@ -19,7 +19,7 @@
   "license": "ISC",
   "devDependencies": {
     "vitest": "^3.2.4",
-    "wrangler": "^4.19.1"
+    "wrangler": "^4.103.0"
   },
   "bugs": {
     "url": "https://github.com/heycqing/TJW-weixin/issues"
